@@ -25,9 +25,9 @@ export const PageSelect: Component = () => {
 					navigate("/")
 				}}>
 					<Show when={selectedPage() == "home"} fallback={
-						<img src="/src/assets/icons/settings.svg" />
+						<img src="/assets/icons/settings.svg" />
 					}>
-						<img src="/src/assets/icons/search.svg" />
+						<img src="/assets/icons/search.svg" />
 					</Show>
 					<span>Home</span>
 				</Button>
@@ -37,9 +37,9 @@ export const PageSelect: Component = () => {
 					navigate("/search")
 				}}>
 					<Show when={selectedPage() == "search"} fallback={
-						<img src="/src/assets/icons/settings.svg" />
+						<img src="assets/icons/settings.svg" />
 					}>
-						<img src="/src/assets/icons/search.svg" />
+						<img src="/assets/icons/search.svg" />
 					</Show>
 					<span>Search</span>
 				</Button>
@@ -49,9 +49,9 @@ export const PageSelect: Component = () => {
 					navigate("/shows")
 				}}>
 					<Show when={selectedPage() == "shows"} fallback={
-						<img src="/src/assets/icons/settings.svg" />
+						<img src="/assets/icons/settings.svg" />
 					}>
-						<img src="/src/assets/icons/search.svg" />
+						<img src="/assets/icons/search.svg" />
 					</Show>
 					<span>Shows</span>
 				</Button>
