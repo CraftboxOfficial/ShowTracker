@@ -9,14 +9,27 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "types": [
-      "vite/client"
+      "vite/client",
+      "firebase/analytics",
+      "firebase/app",
+      "firebase/app-check",
+      "firebase/auth",
+      "firebase/compat",
+      "firebase/database",
+      "firebase/firestore",
+      "firebase/installations",
+      "firebase/messaging",
+      "firebase/performance",
+      "firebase/remote-config",
+      "firebase/storage",
+      "firebase/functions"
     ],
     "noEmit": true,
     "isolatedModules": true,
     "baseUrl": "./",
     "paths": {
       "@assets/*": [
-        "src/assets"
+        "public/assets"
       ]
     }
   }
