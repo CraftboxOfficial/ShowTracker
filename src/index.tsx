@@ -4,16 +4,18 @@ import './index.css';
 import App from './App';
 
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { FirebaseOptions, initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { Router } from '@solidjs/router';
-import { onMount } from 'solid-js';
+import { createResource, onMount } from 'solid-js';
+import { connectFunctionsEmulator, Functions, getFunctions, httpsCallable } from 'firebase/functions';
+import { TMDBMultiSearchQuery } from 'functions/src';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+const firebaseConfig: FirebaseOptions = {
 	apiKey: "AIzaSyBQysz-zYofHUFiN1cJWxC2LtkbNKhMUXM",
 	authDomain: "showtracker-dev.firebaseapp.com",
 	projectId: "showtracker-dev",
@@ -26,15 +28,16 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const functions = getFunctions(app)
+connectFunctionsEmulator(functions, "localhost", 5001)
 
+const a = httpsCallable<TMDBMultiSearchQuery>(functions, "tmdbMultiSearch")
 
 render(() => {
-	onMount(() => {
-		navigator.serviceWorker.register("./serviceWorker.js")
-		window.addEventListener("contextmenu", (e) => {
-			e.preventDefault()
-		})
+	a({ query: "star vs" }).then((r) => {
+		console.log(r.data)
 	})
+	// const [data, {mutate, refetch}] = createResource(a({text: "test"}))
 
 	return (<><Router><App /></Router></>)
 }, document.getElementById('root') as HTMLElement);
