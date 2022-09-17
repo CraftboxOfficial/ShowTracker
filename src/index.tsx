@@ -6,6 +6,8 @@ import App from './App';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { Router } from '@solidjs/router';
+import { onMount } from 'solid-js';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -21,11 +23,18 @@ const firebaseConfig = {
 	measurementId: "G-H6Q86GJ6QY"
 };
 
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-console.log(app)
 
-render(() => <App />, document.getElementById('root') as HTMLElement);
+render(() => {
+	onMount(() => {
+		navigator.serviceWorker.register("./serviceWorker.js")
+		window.addEventListener("contextmenu", (e) => {
+			e.preventDefault()
+		})
+	})
+
+	return (<><Router><App /></Router></>)
+}, document.getElementById('root') as HTMLElement);
