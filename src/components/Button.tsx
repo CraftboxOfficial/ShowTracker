@@ -19,10 +19,10 @@ const ButtonStyle = styled("button")(() => {
 		justifyContent: "center",
 		alignItems: "stretch",
 
-		transition: "all 250ms",
+		transition: "all 150ms",
 
 		"&:hover": {
-			scale: "0.98",
+			scale: "0.97",
 			filter: "brightness(90%)", // TODO set to theme
 
 			// transition: "all 100ms"
