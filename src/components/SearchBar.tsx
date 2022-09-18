@@ -4,15 +4,15 @@ import { styled } from 'solid-styled-components';
 export const SearchBar: Component = () => {
 	return (
 		<>
-			<HomePageStyle id="search-bar">
+			<SearchBarStyle id="search-bar">
 				<input></input>
 				<span>Search</span>
-			</HomePageStyle>
+			</SearchBarStyle>
 		</>
 	)
 }
 
-const HomePageStyle = styled("div")(() => {
+const SearchBarStyle = styled("div")(() => {
 	return {
 		display: "flex",
 		flexDirection: "row",
