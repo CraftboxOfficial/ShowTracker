@@ -61,17 +61,30 @@ export const PageSelect: Component = () => {
 }
 
 const TabSelectStyle = styled("div")(() => {
+
+	const [ appHeight, setAppHeight ] = createSignal(window.innerHeight)
+
+	createEffect(() => {
+		window.addEventListener("resize", (e) => {
+			// setAppHeight(window.innerHeight)
+		})
+	})
+
 	return {
 		height: "80px",
-		maxHeight: "8vh",
+		// maxHeight: "8vh",
 		width: "100%",
-		backgroundImage: "linear-gradient(rgba(0%, 0%, 0%, 0%), rgba(0%, 0%, 0%, 50%))", // TODO set to theme
+		backgroundImage: "linear-gradient(rgba(0%, 0%, 0%, 0%), rgba(0%, 0%, 0%, 80%))", // TODO set to theme
 		display: "flex",
 		flexDirection: "row",
 		justifyContent: "space-around",
 		fontSize: "smaller",
-		// position: "absolute",
-		// bottom: "0px",
+		position: "fixed",
+		// top: "calc(100vh - 8vh)",
+		top: appHeight() - 90 + "px",
+		// zIndex: "1",
+		padding: "10px 0 0 0",
+		// visibility: "hidden",
 
 
 		button: {
