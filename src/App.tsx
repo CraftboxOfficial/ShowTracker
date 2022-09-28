@@ -1,4 +1,4 @@
-import type { Component } from 'solid-js';
+import { Component, useContext } from 'solid-js';
 
 import logo from './logo.svg';
 import styles from './App.module.css';
@@ -12,6 +12,9 @@ import { SearchPage } from './pages/Search';
 import { ShowsPage } from './pages/Shows';
 
 const App: Component = () => {
+
+	// const app = useApp()
+
 	return (
 		<>
 			<StoreonProvider store={store}>

@@ -21,6 +21,7 @@
     "@solidjs/router": "^0.4.3",
     "@storeon/solidjs": "^3.0.1",
     "firebase": "^9.10.0",
+    "solid-firebase": "^0.1.4",
     "solid-js": "^1.5.1",
     "solid-styled-components": "^0.28.4",
     "vite-plugin-pwa": "^0.12.7"

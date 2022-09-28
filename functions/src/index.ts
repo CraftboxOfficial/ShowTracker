@@ -21,5 +21,5 @@ export const tmdbMultiSearch = functions.runWith({ secrets: [ "TMDB_API_KEY" ] }
 		region: data.region
 	}
 	const url = `https://api.themoviedb.org/3/search/multi?api_key=${request.apiKey}&language=${request.language}&query=${request.query}&page=${request.page}&include_adult=${request.includeAdult}${request.region ? `&region=${request.region}` : ""}`
-	return await fetch(url) // FIXME sanitize from api key
+	return await (await fetch(url)).json()
 })

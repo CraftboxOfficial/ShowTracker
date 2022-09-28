@@ -3,33 +3,37 @@ import { styled } from 'solid-styled-components';
 import { Button } from './Button';
 
 export interface SearchCardTvI {
-	id: number,
-	genreIds: number[]
-	mediaType: "tv",
-	originalCountry: string[]
+	backdropPath: string,
 	firstAirDate: string,
+	genreIds: number[]
+	id: number,
+	mediaType: "tv",
 	name: string,
-	originalName: string,
+	originalCountry: string[],
 	originalLanguage: string,
+	originalName: string,
 	overview: string,
 	popularity: number,
 	posterPath: string,
-	voteAverage: number
+	voteAverage: number,
+	voteCount: number
 }
 
 export interface SearchCardMovieI {
-	id: number,
-	genreIds: number[]
-	mediaType: "movie",
-	originalCountry: string[]
+	backdropPath: string,
 	firstAirDate: string,
+	genreIds: number[]
+	id: number,
+	mediaType: "tv",
 	name: string,
-	originalName: string,
+	originalCountry: string[],
 	originalLanguage: string,
+	originalName: string,
 	overview: string,
 	popularity: number,
 	posterPath: string,
-	voteAverage: number
+	voteAverage: number,
+	voteCount: number
 }
 
 type InfoViewI = "overview" | "details"
