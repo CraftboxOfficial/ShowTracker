@@ -1,4 +1,4 @@
-export interface TMDBMultiSearchQuery {
+export interface TMDBSearchMultiSearchQuery {
 	language?: string,
 	query: string,
 	page?: number,
@@ -6,14 +6,14 @@ export interface TMDBMultiSearchQuery {
 	region?: string
 }
 
-export interface TMDBSearchMultiResponse {
+export interface TMDBSearchMultiSearch {
 	page: number,
-	results: (TMDBSearchMultiResponseResultTv | TMDBSearchMultiResponseResultMovie | TMDBSearchMultiResponseResultPerson)[],
+	results: (TMDBSearchMultiSearchTv | TMDBSearchMultiSearchMovie | TMDBSearchMultiSearchPerson)[],
 	total_results: number,
 	total_pages: number
 }
 
-export interface TMDBSearchMultiResponseResultTv {
+interface TMDBSearchMultiSearchTv {
 	poster_path: string | null,
 	popularity: number,
 	id: number,
@@ -30,7 +30,7 @@ export interface TMDBSearchMultiResponseResultTv {
 	original_name: string,
 }
 
-export interface TMDBSearchMultiResponseResultMovie {
+interface TMDBSearchMultiSearchMovie {
 	poster_path: string | null,
 	adult: boolean,
 	overview: string,
@@ -48,17 +48,17 @@ export interface TMDBSearchMultiResponseResultMovie {
 	vote_average: number,
 }
 
-export interface TMDBSearchMultiResponseResultPerson {
+interface TMDBSearchMultiSearchPerson {
 	profile_path: string | null,
 	adult: boolean,
 	id: number,
 	media_type: "person",
-	known_for: (TMDBSearchMultiResponseResultTv | TMDBSearchMultiResponseResultMovie)[],
+	known_for: (TMDBSearchMultiSearchTv | TMDBSearchMultiSearchMovie)[],
 	name: string,
 	popularity: number
 }
 
-export interface TMDBTvResponse {
+export interface TMDBTvGetDetails {
 	backdrop_path: string | null,
 	created_by: {
 		id: number,
@@ -135,4 +135,93 @@ export interface TMDBTvResponse {
 	type: string,
 	vote_average: number,
 	vote_count: number
+}
+
+export interface TMDBTvSeasonsGetDetails {
+	_id: string,
+	air_date: string,
+	episodes: {
+		air_date: string,
+		episode_number: number,
+		crew: {
+			departament: string,
+			job: string,
+			credit_id: string,
+			adult: boolean | null,
+			gender: number,
+			id: number,
+			known_for_department: string,
+			name: string,
+			original_name: string,
+			popularity: number,
+			profile_path: string | null
+		}[],
+		guest_stars: {
+			credit_id: string,
+			order: number,
+			character: string,
+			adult: boolean,
+			gender: number | null,
+			id: number,
+			known_for_department: string,
+			name: string,
+			original_name: string,
+			popularity: number,
+			profile_path: string | null
+		}[],
+		id: number,
+		name: string,
+		overview: string,
+		production_code: string,
+		season_number: number,
+		still_path: string,
+		vote_average: number,
+		vote_count: number
+	}[],
+	name: string,
+	id: number,
+	poster_path: string | null,
+	season_number: number
+}
+
+export type TMDBConfigurationCategories = "apiConfiguration" | "countries" | "jobs" | "languages" | "primaryTranslations" | "timezones"
+export type TMDBConfigurationResponses = TMDBConfigurationGetApiConfiguration | TMDBConfigurationGetCountries | TMDBConfigurationGetJobs | TMDBConfigurationGetLanguages | TMDBConfigurationGetPrimaryLanguages | TMDBConfigurationGetTimezones
+export interface TMDBConfigurationGetApiConfiguration {
+	images: {
+		base_url: string,
+		secure_base_url: string,
+		backdrop_sizes: string[],
+		logo_sizes: string[],
+		poster_sizes: string[],
+		profile_sizes: string[],
+		still_sizes: string[]
+	},
+	change_keys: string[]
+}
+
+export type TMDBConfigurationGetCountries = TMDBGetCountries[]
+interface TMDBGetCountries {
+	iso_3166_1: string,
+	english_name: string
+}
+
+export type TMDBConfigurationGetJobs = TMDBGetJobs[]
+interface TMDBGetJobs {
+	departament: string,
+	jobs: string[]
+}
+
+export type TMDBConfigurationGetLanguages = TMDBGetLanguages[]
+interface TMDBGetLanguages {
+	iso_639_1: string,
+	english_name: string,
+	name: string
+}
+
+export type TMDBConfigurationGetPrimaryLanguages = string[]
+
+export type TMDBConfigurationGetTimezones = TMDBGetTimezones[]
+interface TMDBGetTimezones {
+	iso_3166_1: string,
+	zones: string[]
 }
