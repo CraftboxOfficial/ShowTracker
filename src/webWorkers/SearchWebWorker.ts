@@ -1,6 +1,6 @@
 // import { FirebaseApp } from 'firebase/app';
 // import { getFunctions, httpsCallable } from 'firebase/functions';
-import { TMDBMultiSearchQuery, TMDBSearchMultiResponse } from '../tmdb';
+import { TMDBSearchMultiSearchQuery, TMDBSearchMultiSearch } from '../tmdb';
 
 
 
@@ -11,14 +11,14 @@ import { TMDBMultiSearchQuery, TMDBSearchMultiResponse } from '../tmdb';
 // 	const cachedResponse = await cacheStorage.match(keyName)
 // }
 
-const workingCache: Map<TMDBMultiSearchQuery, TMDBSearchMultiResponse> = new Map()
+const workingCache: Map<TMDBSearchMultiSearchQuery, TMDBSearchMultiSearch> = new Map()
 
 // const cache = async (query: TMDBMultiSearchQuery) => {
 // 	const cacheStorage = await caches.open("tmdb-multisearch-responses")
 // 	const cachedRespone = await cacheStorage.match(query)
 // }
 
-self.onmessage = (e: MessageEvent<[ "TMDBMultiSearch.Query", TMDBMultiSearchQuery ]>) => {
+self.onmessage = (e: MessageEvent<[ "TMDBMultiSearch.Query", TMDBSearchMultiSearchQuery ]>) => {
 	// const functions = getFunctions(e.data[ 2 ])
 
 	if (e.data[ 0 ] == "TMDBMultiSearch.Query") {
