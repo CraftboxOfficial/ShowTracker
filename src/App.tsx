@@ -10,6 +10,8 @@ import { StoreonProvider } from '@storeon/solidjs';
 import { store } from './State';
 import { SearchPage } from './pages/Search';
 import { ShowsPage } from './pages/Shows';
+import { CacheProvider, useCache } from './components/CacheProvider';
+import { TmdbProvider } from './components/TmdbProvider';
 
 const App: Component = () => {
 
@@ -18,14 +20,18 @@ const App: Component = () => {
 	return (
 		<>
 			<StoreonProvider store={store}>
-				<AppStyle>
-					<Routes>
-						<Route path="/" component={HomePage} />
-						<Route path="/search" component={SearchPage} />
-						<Route path="/shows" component={ShowsPage} />
-					</Routes>
-					<PageSelect />
-				</AppStyle>
+				<TmdbProvider>
+					<CacheProvider>
+						<AppStyle>
+							<Routes>
+								<Route path="/" component={HomePage} />
+								<Route path="/search" component={SearchPage} />
+								<Route path="/shows" component={ShowsPage} />
+							</Routes>
+							<PageSelect />
+						</AppStyle>
+					</CacheProvider>
+				</TmdbProvider>
 			</StoreonProvider>
 		</>
 	);
