@@ -1,15 +1,20 @@
 import { httpsCallable, getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { tmdbGetConfiguration } from 'functions/src';
 import { Component, createContext, JSXElement, useContext, onMount } from 'solid-js';
-import { TMDBTvGetDetails, TMDBTvSeasonsGetDetails } from 'src/tmdb';
+import { TMDBConfigurationGetCountries, TMDBConfigurationGetJobs, TMDBConfigurationGetLanguages, TMDBConfigurationGetPrimaryLanguages, TMDBConfigurationGetTimezones, TMDBTvGetDetails, TMDBTvSeasonsGetDetails } from 'src/tmdb';
 import { TMDBConfigurationCategories, TMDBConfigurationGetApiConfiguration } from '../tmdb';
 import { useFirebaseApp } from 'solid-firebase';
 import { tmdbGetConfigurationData } from '../../functions/src/index';
 import { useTmdb } from './TmdbProvider';
+import localforage from 'localforage';
 
 
 interface CacheContext {
-
+	configuration: ConfConfiguration,
+	images: {
+		save: (images: Map<string, Blob>) => void,
+		retrive: (keys: string[]) => Map<string, (Blob | null)>
+	}
 }
 
 
@@ -66,8 +71,7 @@ interface ConfTimezones {
 
 type ContentType = "application/object" | "image/png" | "img/svg"
 
-
-const Cache: CacheObj = {
+const Cache: CacheContext = {
 	configuration: {
 		apiConfiguration: null,
 		countries: null,
@@ -76,10 +80,33 @@ const Cache: CacheObj = {
 		primaryTranslations: null,
 		timezones: null
 	},
-	searchQueries: new Map<object, object>(),
-	searchImages: new Map<string, Blob>(),
-	showImages: new Map<string, Blob>(),
-	shows: new Map<string, { tv: TMDBTvGetDetails, seasons: TMDBTvSeasonsGetDetails[] }>()
+	images: {
+		save: saveImages,
+		retrive: retriveImages
+	}
+}
+
+const imageStore = localforage.createInstance({
+	name: "images"
+})
+
+function retriveImages(keys: string[]) {
+	const images = keys.map(async (key) => {
+		return await imageStore.getItem(key) as Blob | null
+	})
+
+	const mapped = new Map<string, (Blob | null)>()
+	keys.forEach(async (key, index) => {
+		mapped.set(key, await images[ index ])
+	})
+
+	return mapped
+}
+
+async function saveImages(images: Map<string, Blob>) {
+	images.forEach((value, key) => {
+		localforage.setItem(key, value)
+	})
 }
 
 
@@ -124,13 +151,14 @@ export const CacheProvider: Component<{ children: JSXElement }> = (props) => {
 		})
 
 		if (missingConfiguration.length > 0) {
+			// console.log(missingConfiguration)
 			const request = await tmdb.tmdbGetConfiguration({
-				getApiConfiguration: missingConfiguration.includes("apiConfiguration"),
-				getCountries: missingConfiguration.includes("countries"),
-				getJobs: missingConfiguration.includes("jobs"),
-				getLanguages: missingConfiguration.includes("languages"),
-				getPrimaryTranslations: missingConfiguration.includes("primaryTranslations"),
-				getTimezones: missingConfiguration.includes("timezones")
+				// getApiConfiguration: missingConfiguration.includes("apiConfiguration"),
+				// getCountries: missingConfiguration.includes("countries"),
+				// getJobs: missingConfiguration.includes("jobs"),
+				// getLanguages: missingConfiguration.includes("languages"),
+				// getPrimaryTranslations: missingConfiguration.includes("primaryTranslations"),
+				// getTimezones: missingConfiguration.includes("timezones")
 			})
 
 			configurationObj = { ...configurationObj, ...request.data as object }
