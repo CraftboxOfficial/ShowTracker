@@ -225,3 +225,73 @@ interface TMDBGetTimezones {
 	iso_3166_1: string,
 	zones: string[]
 }
+
+export interface TMDBTvGetImages {
+	backdrops: {
+		aspect_ratio: number,
+		file_path: string,
+		height: number,
+		iso_639_1: string | null,
+		vote_average: number,
+		vote_count: number,
+		width: number
+	}[],
+	id: number,
+	posters: {
+		aspect_ratio: number,
+		file_path: string,
+		height: number,
+		iso_639_1: string | null,
+		vote_average: number,
+		vote_count: number,
+		width: number
+	}[]
+}
+
+export interface TMDBTvSeasonsGetImages {
+	id: number,
+	posters: {
+		aspect_ratio: number,
+		file_path: string,
+		height: number,
+		iso_639_1: string | null,
+		vote_average: number,
+		vote_count: number,
+		width: number
+	}[]
+}
+
+export interface TMDBTvEpisodesGetImages {
+	id: number,
+	stills: {
+		aspect_ratio: number,
+		file_path: string,
+		height: number,
+		iso_639_1: string | null,
+		vote_average: number,
+		vote_count: number,
+		width: number
+	}[]
+}
+
+export interface TMDBMoviesGetImages {
+	id: number,
+	backdrops: {
+		aspect_ratio: number,
+		file_path: string,
+		height: number,
+		iso_639_1: string | null,
+		vote_average: number,
+		vote_count: number,
+		width: number
+	}[],
+	posters: {
+		aspect_ratio: number,
+		file_path: string,
+		height: number,
+		iso_639_1: string | null,
+		vote_average: number,
+		vote_count: number,
+		width: number
+	}[]
+}
