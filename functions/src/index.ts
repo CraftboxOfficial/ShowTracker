@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import fetch from 'node-fetch';
-import { TMDBConfigurationGetApiConfiguration, TMDBConfigurationGetCountries, TMDBConfigurationGetJobs, TMDBConfigurationGetPrimaryLanguages, TMDBConfigurationGetLanguages, TMDBConfigurationGetTimezones } from '../../src/tmdb.js';
+import { TMDBConfigurationGetApiConfiguration, TMDBConfigurationGetCountries, TMDBConfigurationGetJobs, TMDBConfigurationGetLanguages, TMDBConfigurationGetPrimaryLanguages, TMDBConfigurationGetTimezones, TMDBTvEpisodesGetImages } from '../../src/tmdb.js';
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
@@ -13,18 +13,26 @@ export interface TMDBMultiSearchQuery {
 	region?: string
 }
 
-export const tmdbMultiSearch = functions.runWith({ secrets: [ "TMDB_API_KEY" ] }).https.onCall(async (data: { language?: string, query: string, page?: number, includeAdult?: boolean, region?: string }, context) => {
-	const request = {
-		apiKey: process.env.TMDB_API_KEY,
-		language: data.language || "en-US",
-		query: encodeURI(data.query),
-		page: data.page || 1,
-		includeAdult: data.includeAdult || false,
-		region: data.region
-	}
-	const url = `https://api.themoviedb.org/3/search/multi?api_key=${request.apiKey}&language=${request.language}&query=${request.query}&page=${request.page}&include_adult=${request.includeAdult}${request.region ? `&region=${request.region}` : ""}`
-	return await (await fetch(url)).json()
-})
+export const tmdbMultiSearch = functions
+	.runWith({ secrets: [ "TMDB_API_KEY" ] })
+	.https.onCall(async (data: {
+		language?: string,
+		query: string,
+		page?: number,
+		includeAdult?: boolean,
+		region?: string
+	}, context) => {
+		const request = {
+			apiKey: process.env.TMDB_API_KEY,
+			language: data.language || "en-US",
+			query: encodeURI(data.query),
+			page: data.page || 1,
+			includeAdult: data.includeAdult || false,
+			region: data.region
+		}
+		const url = `https://api.themoviedb.org/3/search/multi?api_key=${request.apiKey}&language=${request.language}&query=${request.query}&page=${request.page}&include_adult=${request.includeAdult}${request.region ? `&region=${request.region}` : ""}`
+		return await (await fetch(url)).json()
+	})
 
 export interface tmdbGetConfigurationData {
 	getApiConfiguration?: boolean,
@@ -89,3 +97,100 @@ export const tmdbGetConfiguration = functions
 
 		return responses
 	})
+
+export type tmdbGetImagesData = ({
+	type: "tv",
+	tvId: number,
+	language?: string
+} | {
+	type: "tvSeason",
+	tvId: number,
+	seasonNumber: number,
+	language?: string
+} | {
+	type: "tvEpisode",
+	tvId: number,
+	seasonNumber: number,
+	episodeNumber: number
+} | {
+	type: "movie",
+	movieId: number,
+	language?: string,
+	includeImageLanguage?: string
+})[]
+
+export const tmdbGetImagesData = functions
+	.runWith({ secrets: [ "TMDB_API_KEY" ] })
+	.https.onCall(async (data: tmdbGetImagesData, context) => {
+		const apiKey = process.env.TMDB_API_KEY
+
+		const retrivedImages = data.map(async (request) => {
+			switch (request.type) {
+				case "tv": {
+					const url = `https://api.themoviedb.org/3/tv/${request.tvId}/images?api_key=${apiKey}${request.language ? `&language=${request.language}` : ``}`
+					return await (await fetch(url)).json() as TMDBTvEpisodesGetImages
+				}
+				case "tvSeason": {
+					const url = `https://api.themoviedb.org/3/tv/${request.tvId}/season/${request.seasonNumber}/images?api_key=${apiKey}${request.language ? `&language=${request.language}` : ``}`
+					return await (await fetch(url)).json() as TMDBTvEpisodesGetImages
+				}
+				case "tvEpisode": {
+					const url = `https://api.themoviedb.org/3/tv/${request.tvId}/season/${request.seasonNumber}/episode/${request.episodeNumber}/images?api_key=${apiKey}`
+					return await (await fetch(url)).json() as TMDBTvEpisodesGetImages
+				}
+				case "movie": {
+					const url = `https://api.themoviedb.org/3/movie/${request.movieId}/images?api_key=${apiKey}${request.language ? `&language=${request.language}` : ``}${request.includeImageLanguage ? `&include_image_language=${request.includeImageLanguage}` : ``}`
+					return await (await fetch(url)).json() as TMDBTvEpisodesGetImages
+				}
+				default: {
+					return {
+						errorMessage: "This type of request is not yet supported. Consider implementing as you were too lazy to do so earlier you lazy butt.",
+						request: request
+					}
+				}
+			}
+		})
+
+		return retrivedImages
+	})
+
+export type tmdbGetImages = {
+	baseUrl: string,
+	size: string,
+	path: string
+}[]
+
+// export const tmdbGetImages = functions.https.onCall(async (data: tmdbGetImages, context) => {
+// 	// console.log(data)
+// 	const retrivedImages: any[] = []
+
+// 	// const a = async () => data.forEach(async (image) => {
+// 	// 	const url = `${image.baseUrl}${image.size}${image.path}`
+// 	// 	retrivedImages.push(await (await fetch(url, { method: "GET" })).arrayBuffer())
+// 	// 	// @ts-ignore
+// 	// 	// const b = new Blob()
+// 	// 	// return new Promise(async (resolve, reject) => {
+// 	// 	// 	const reader = new FileReader()
+// 	// 	// 	reader.onloadend = () => resolve(reader.result)
+// 	// 	// 	reader.readAsDataURL(await(await fetch(url, { method: "GET" })).blob())
+// 	// 	// })
+// 	// })
+
+// 	// retrivedImages.forEach(async (v) => console.log((await v).size))
+// 	// await a()
+// 	for (let index = 0; index < data.length; index++) {
+// 		const image = data[ index ]
+// 		const url = `${image.baseUrl}${image.size}${image.path}`
+// 		const blob = await (await fetch(url, { method: "GET" })).blob()
+// 		blob.arrayBuffer().then((v) => {
+// 			const a = String.fromCharCode(...new Uint8Array(v))
+			
+// 			retrivedImages.push(base64.encodeString(a))
+// 		})
+// 	}
+
+// 	// console.log(retrivedImages)
+
+// 	// return []
+// 	return retrivedImages
+// })
