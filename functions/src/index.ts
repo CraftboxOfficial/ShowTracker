@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import fetch from 'node-fetch';
-import { TMDBConfigurationGetApiConfiguration, TMDBConfigurationGetCountries, TMDBConfigurationGetJobs, TMDBConfigurationGetLanguages, TMDBConfigurationGetPrimaryLanguages, TMDBConfigurationGetTimezones, TMDBTvEpisodesGetImages } from '../../src/tmdb.js';
+import { TMDBConfigurationGetApiConfiguration, TMDBConfigurationGetCountries, TMDBConfigurationGetJobs, TMDBConfigurationGetLanguages, TMDBConfigurationGetPrimaryLanguages, TMDBConfigurationGetTimezones, TMDBTvEpisodesGetImages, TMDBTvGetDetailsQuery } from '../../src/tmdb.js';
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
@@ -34,6 +34,33 @@ export const tmdbMultiSearch = functions
 		return await (await fetch(url)).json()
 	})
 
+export const tmdbTvGetDetails = functions
+	.runWith({ secrets: [ "TMDB_API_KEY" ] })
+	.https.onCall(async (data: TMDBTvGetDetailsQuery | TMDBTvGetDetailsQuery[], context) => {
+		if (Array.isArray(data)) {
+			const queries = data.map((v) => ({
+					apiKey: process.env.TMDB_API_KEY,
+					language: v.language || "en-US",
+					tvId: v.tv_id,
+			}))
+
+			const results = queries.map( async (query) => {
+				const url = `https://api.themoviedb.org/3/tv/${query.tvId}?api_key=${query.apiKey}&language=${query.language}`
+				return await (await fetch(url)).json()
+			})
+
+			return results
+		}
+
+		const request = {
+			apiKey: process.env.TMDB_API_KEY,
+			language: data.language || "en-US",
+			tvId: data.tv_id,
+		}
+		const url = `https://api.themoviedb.org/3/tv/${request.tvId}?api_key=${request.apiKey}&language=${request.language}`
+		return await (await fetch(url)).json()
+	})
+
 export interface tmdbGetConfigurationData {
 	getApiConfiguration?: boolean,
 	getCountries?: boolean,
@@ -44,7 +71,7 @@ export interface tmdbGetConfigurationData {
 }
 
 export interface tmdbGetConfigurationResponses {
-	apiConfiguration: null | TMDBConfigurationGetApiConfiguration,
+	apiConfiguration: TMDBConfigurationGetApiConfiguration,
 	countries: null | TMDBConfigurationGetCountries,
 	jobs: null | TMDBConfigurationGetJobs,
 	languages: null | TMDBConfigurationGetLanguages,
@@ -57,6 +84,7 @@ export const tmdbGetConfiguration = functions
 	.https.onCall(async (data: tmdbGetConfigurationData, context) => {
 		const apiKey = process.env.TMDB_API_KEY
 		const responses: tmdbGetConfigurationResponses = {
+			// @ts-expect-error
 			apiConfiguration: null,
 			countries: null,
 			jobs: null,
