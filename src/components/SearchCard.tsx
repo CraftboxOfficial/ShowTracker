@@ -1,6 +1,8 @@
-import { Component, Show, createSignal, Accessor, Setter, Switch, Match } from 'solid-js';
+import { Component, Show, createSignal, Accessor, Setter, Switch, Match, createMemo, createEffect } from 'solid-js';
 import { styled } from 'solid-styled-components';
 import { Button } from './Button';
+import { useTmdb } from './TmdbProvider';
+import { TMDBConfigurationGetApiConfiguration } from '../tmdb';
 
 export interface SearchCardTvI {
 	backdropPath: string,
@@ -43,8 +45,39 @@ interface SearchCard extends HTMLDivElement {
 }
 export const SearchCard: Component<{ card: (SearchCardTvI | SearchCardMovieI | undefined), class?: string }> = (props) => {
 
+	const tmdb = useTmdb()
+
 	const [ cardContent, setCardContent ]: [ Accessor<(SearchCardTvI | SearchCardMovieI | undefined)>, Setter<(SearchCardTvI | SearchCardMovieI | undefined)> ] = createSignal(props.card)
 	const [ infoView, setInfoView ]: [ Accessor<InfoViewI>, Setter<InfoViewI> ] = createSignal("details")
+
+	const [ configuration, setConfiguration ]: [ Accessor<TMDBConfigurationGetApiConfiguration | undefined>, Setter<TMDBConfigurationGetApiConfiguration | undefined> ] = createSignal()
+	tmdb.tmdbGetConfiguration().then((c) => setConfiguration(c))
+
+	const [ poster, setPoster ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
+
+	// createEffect(() => {
+	console.log(cardContent())
+	createEffect(() => {
+		if (cardContent()) {
+			tmdb.tmdbGetImage({
+				priority: 13,
+				query: {
+					// @ts-expect-error
+					baseUrl: configuration()?.images.base_url,
+					// @ts-expect-error
+					path: cardContent()?.poster_path,
+					size: "original"
+				}
+			}).then((blob) => {
+				console.log(blob)
+				if (blob) {
+					setPoster(URL.createObjectURL(blob))
+				}
+			})
+		}
+	})
+	// })
+
 
 	return (
 		<>
@@ -69,7 +102,9 @@ export const SearchCard: Component<{ card: (SearchCardTvI | SearchCardMovieI | u
 				}>
 					<>
 						<div class="content">
-							<div class="poster"></div>
+							<div class="poster">
+								<img src={poster()}></img>
+							</div>
 							<div class="info">
 								<span class="title">{cardContent()?.name}</span>
 								<Switch>
@@ -151,7 +186,12 @@ const SearchCardStyle = styled("div")(() => {
 				maxHeight: "150px",
 				minWidth: "100px",
 				maxWidth: "100px",
-				backgroundColor: "whitesmoke"
+				backgroundColor: "whitesmoke",
+
+				"img": {
+					width: "100%",
+					height: "100%"
+				}
 			}
 		},
 
