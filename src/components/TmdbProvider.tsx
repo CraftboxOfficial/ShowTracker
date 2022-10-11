@@ -1,19 +1,91 @@
-import { connectFunctionsEmulator, getFunctions, HttpsCallable, httpsCallable } from "firebase/functions";
-import { tmdbGetConfigurationData, tmdbGetImages, tmdbGetImagesData, TMDBMultiSearchQuery } from "functions/src";
+import { connectFunctionsEmulator, getFunctions, HttpsCallable, httpsCallable, HttpsCallableResult } from "firebase/functions";
+import { tmdbGetConfigurationData, tmdbGetConfigurationResponses, tmdbGetImagesData, TMDBMultiSearchQuery } from "functions/src";
 import { useFirebaseApp } from "solid-firebase";
-import { Component, createContext, JSXElement, useContext, onMount, createSignal } from 'solid-js';
+import { Component, createContext, JSXElement, useContext, onMount, createSignal, onCleanup } from 'solid-js';
 import { useCache } from "./CacheProvider";
 import { base64 } from '@firebase/util';
 import localforage from 'localforage';
+import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearch, TMDBTvGetDetails, TMDBTvGetDetailsQuery } from '../tmdb';
 
 const TmdbContext = createContext()
 
 interface TmdbContext {
-	tmdbMultiSearch: HttpsCallable<TMDBMultiSearchQuery, unknown>,
-	tmdbGetConfiguration: HttpsCallable<tmdbGetConfigurationData, unknown>,
+	tmdbMultiSearch: (data: {
+		priority: number
+		query: TMDBMultiSearchQuery
+	}) => Promise<TMDBSearchMultiSearch | undefined>,
+
+	tmdbGetConfiguration: () => Promise<TMDBConfigurationGetApiConfiguration | undefined>,
+
 	tmdbGetImagesData: HttpsCallable<tmdbGetImagesData, unknown>,
-	tmdbGetImages: (data: tmdbGetImages) => any
+
+	tmdbGetImage: (data: {
+		priority: number,
+		query: tmdbGetImage
+	}) => Promise<Blob | undefined>,
+
+	tmdbGetTvDetails: (data: {
+		priority: number
+		query: TMDBTvGetDetailsQuery
+	}[]) => Promise<TMDBTvGetDetails | Promise<TMDBTvGetDetails | undefined>[] | undefined>,
 }
+
+export type tmdbGetImage = {
+	baseUrl: string,
+	size: string,
+	path: string,
+
+}
+
+interface savedData {
+	lastUsedOn: Date,
+	createdOn: Date,
+	priority: number,
+}
+
+interface savedImage extends savedData {
+	blob: Blob
+}
+
+interface savedSearchQuery extends savedData {
+	data: TMDBSearchMultiSearch
+}
+
+interface savedTvDetails extends savedData {
+	data: TMDBTvGetDetails
+}
+
+interface savedApiConfiguration extends savedData {
+	data: TMDBConfigurationGetApiConfiguration
+}
+// TODO cache auto cleaning
+/* Higher number == lower priority
+
+	deleting hierarchy:
+		>> lower priority
+			>> older last accessed date
+				>> size
+					>> older creation date
+
+	Priorities:
+	1 -> never cleared
+	2 - 3 -> never cleared based on date, but on space, max up to 70 mb
+	4 - 6 -> up to 60 days or space, max up to 50 mb
+	7 - 10 -> up to 30 days or space, max up to 50 mb
+	11 - 13 -> up to 15 days or space, max up to 15 mb at closing; up to 50 mb while running
+	14+ -> cleand on closing
+
+ */
+
+const DB_NAMES = {
+	SEARCH_QUERIES: "searchQueries",
+	IMAGES: "images",
+	DETAILS: "details",
+	CONFIGURATION: "configuration"
+}
+
+const MEGABYTE = 1000000
+
 export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 
 	const app = useFirebaseApp()
@@ -24,73 +96,251 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 
 
 	const cloudFunctions: TmdbContext = { //TODO convert all of these to be similar to the last one
-		tmdbMultiSearch: httpsCallable<TMDBMultiSearchQuery>(functions, "tmdbMultiSearch"),
-		tmdbGetConfiguration: httpsCallable<tmdbGetConfigurationData>(functions, "tmdbGetConfiguration"),
-		tmdbGetImagesData: httpsCallable<tmdbGetImagesData>(functions, "tmdbGetImagesData"),
-		
-		/**
-		 * Returns requested images as blobs;
-		 * Prioritizes locally saved over fetching from api
-		 * @param data tmdbGetImages
-		 * @returns Blob[]
-		 */
-		tmdbGetImages: (data: tmdbGetImages) => {
+		tmdbMultiSearch: async (data) => {
+			const call = httpsCallable<TMDBMultiSearchQuery>(functions, "tmdbMultiSearch")
 
-			const imageStore = localforage.createInstance({
-				name: "images"
+			const searchQueryStore = localforage.createInstance({
+				name: DB_NAMES.SEARCH_QUERIES
 			})
 
-			function retriveImages(keys: string[]) {
+			const queryKey = JSON.stringify(data.query)
 
-				const images = keys.map(async (key) => {
-					return await imageStore.getItem(key) as Blob | null
-				})
+			const retrivedQuery = await searchQueryStore.getItem(queryKey) as savedSearchQuery | null
 
-				const mapped = new Map<string, (Blob | null)>()
-				keys.forEach(async (key, index) => {
-					mapped.set(key, await images[ index ])
-				})
+			if (retrivedQuery) {
+				searchQueryStore.setItem(queryKey, {
+					...retrivedQuery,
+					lastUsedOn: new Date(),
+					priority: data.priority
+				} as savedSearchQuery)
 
-				return mapped
+				return retrivedQuery.data
 			}
 
-			function saveImages(images: Map<string, Blob>) {
+			if (!retrivedQuery) {
+				const response = await call({ ...data.query }) as HttpsCallableResult<TMDBSearchMultiSearch>
 
-				images.forEach((value, key) => {
-					localforage.setItem(key, value)
-				})
+				searchQueryStore.setItem(queryKey, {
+					lastUsedOn: new Date(),
+					createdOn: new Date(),
+					priority: data.priority,
+					data: response.data
+				} as savedSearchQuery)
+
+				return response.data
 			}
 
-			async function fetchImage(image: { baseUrl: string, size: string, path: string }) {
-				const url = `${image.baseUrl}${image.size}${image.path}`
+		},
 
+		tmdbGetConfiguration: async () => {
+			const call = httpsCallable<tmdbGetConfigurationData>(functions, "tmdbGetConfiguration")
+
+			const configurationStore = localforage.createInstance({
+				name: DB_NAMES.CONFIGURATION
+			})
+
+			const configurationKey = "tmdbApiConfiguration"
+
+			const retrivedConfiguration = await configurationStore.getItem(configurationKey) as savedApiConfiguration | null
+
+			if (retrivedConfiguration) {
+				configurationStore.setItem(configurationKey, {
+					...retrivedConfiguration,
+					lastUsedOn: new Date(),
+					priority: 1
+				} as savedApiConfiguration)
+
+				return retrivedConfiguration.data
+			}
+
+			if (!retrivedConfiguration) {
+				const response = await call({ getApiConfiguration: true }) as HttpsCallableResult<tmdbGetConfigurationResponses>
+
+				configurationStore.setItem(configurationKey, {
+					lastUsedOn: new Date(),
+					createdOn: new Date(),
+					priority: 1,
+					data: response.data.apiConfiguration
+				} as savedApiConfiguration)
+
+				return response.data.apiConfiguration
+			}
+
+		},
+
+		tmdbGetImagesData: httpsCallable<tmdbGetImagesData>(functions, "tmdbGetImagesData"),
+
+		tmdbGetImage: async (image) => {
+
+			const imageStore = localforage.createInstance({
+				name: DB_NAMES.IMAGES
+			})
+
+			const imageKey = `${image.query.size}${image.query.path}`
+
+			const retrivedImage = await imageStore.getItem(imageKey) as savedImage | null
+
+			if (retrivedImage) {
+				imageStore.setItem(imageKey, {
+					...retrivedImage,
+					lastUsedOn: new Date(),
+					priority: image.priority
+				} as savedImage)
+
+				return retrivedImage.blob
+			}
+
+			if (!retrivedImage) {
+				const url = `${image.query.baseUrl}${image.query.size}${image.query.path}`
 				const blob = await (await fetch(url, { method: "GET" })).blob()
+
+				imageStore.setItem(imageKey, {
+					lastUsedOn: new Date(),
+					createdOn: new Date(),
+					priority: image.priority,
+					blob: blob
+				} as savedImage)
+
 				return blob
 			}
+		},
 
-			function loadImage(image: { baseUrl: string, size: string, path: string }) {
-				const imageKey = `${image.size}${image.path}`
+		tmdbGetTvDetails: async (data) => {
+			const call = httpsCallable<TMDBTvGetDetailsQuery>(functions, "tmdbTvGetDetails")
 
-				const imagesMap = retriveImages([ imageKey ])
+			const detailsStore = localforage.createInstance({
+				name: DB_NAMES.DETAILS
+			})
 
-				if (!imagesMap.get(imageKey)) {
-					
-					const fetched = fetchImage(image)
-					
-					return fetched.then((blob) => {
-						saveImages(new Map([ [ imageKey, blob ] ]))
-						return blob
-					})
+			async function getDetail(data: {
+				priority: number
+				query: TMDBTvGetDetailsQuery
+			}) {
+
+
+				const detailsKey = JSON.stringify(data.query)
+
+				const retrivedDetails = await detailsStore.getItem(detailsKey) as savedTvDetails | null
+
+				if (retrivedDetails) {
+					detailsStore.setItem(detailsKey, {
+						...retrivedDetails,
+						lastUsedOn: new Date(),
+						priority: data.priority
+					} as savedTvDetails)
+
+					return retrivedDetails.data
+				}
+
+				if (!retrivedDetails) {
+					const response = await call({ ...data.query }) as HttpsCallableResult<TMDBTvGetDetails>
+
+					detailsStore.setItem(detailsKey, {
+						lastUsedOn: new Date(),
+						createdOn: new Date(),
+						priority: data.priority,
+						data: response.data
+					} as savedTvDetails)
+
+					return response.data
 				}
 			}
 
-			const imagesBlobs = data.map((image) => {
-				return loadImage(image)
-			})
-
-			return imagesBlobs
+			if (Array.isArray(data)) {
+				return data.map(async (data) => await getDetail(data))
+			} else {
+				return await getDetail(data)
+			}
 		}
 	}
+
+	function cleanupDB() { // TODO add other cache auto cleaning
+		const searchQueryStore = localforage.createInstance({
+			name: DB_NAMES.SEARCH_QUERIES
+		})
+
+		const imageStore = localforage.createInstance({
+			name: DB_NAMES.IMAGES
+		})
+
+		searchQueryStore.iterate((v: savedSearchQuery, k) => {
+			console.log(v)
+			if (v.priority >= 14) {
+				searchQueryStore.removeItem(k)
+			}
+		})
+
+		let imagesSize = {
+			"14": 0,
+			"13": 0,
+			"10": 0,
+			"6": 0,
+			"3": 0,
+			"1": 0
+		}
+		imageStore.iterate((v: savedImage, k) => {
+			if (v.priority == 1) {
+				imagesSize[ 1 ] += v.blob.size
+			}
+
+			if (v.priority >= 2 && v.priority <= 3) {
+				imagesSize[ 3 ] += v.blob.size
+			}
+
+			if (v.priority >= 4 && v.priority <= 6) {
+				imagesSize[ 6 ] += v.blob.size
+			}
+
+			if (v.priority >= 7 && v.priority <= 10) {
+				imagesSize[ 10 ] += v.blob.size
+			}
+
+			if (v.priority >= 11 && v.priority <= 13) {
+				imagesSize[ 13 ] += v.blob.size
+			}
+
+			if (v.priority >= 14) {
+				imagesSize[ 14 ] += v.blob.size
+			}
+		})
+
+		imageStore.iterate((v: savedImage, k) => {
+			if (v.priority >= 14) {
+				searchQueryStore.removeItem(k)
+			}
+
+			if (v.priority <= 13 && v.priority >= 11) {
+				{
+					const currentDate = new Date()
+					const difference = currentDate.getTime() - v.createdOn.getTime()
+					const differenceDays = difference / (1000 * 3600 * 24)
+
+					if (differenceDays >= 15) {
+						searchQueryStore.removeItem(k)
+					}
+				}
+				{
+					// TODO make it prioritize oldest
+					if (imagesSize[ 13 ] > 15 * MEGABYTE) {
+						imagesSize[ 13 ] -= v.blob.size
+						searchQueryStore.removeItem(k)
+					}
+				}
+			}
+		})
+	}
+
+	onCleanup(() => {
+		cleanupDB()
+	})
+
+	window.addEventListener("beforeunload", (e) => {
+		cleanupDB()
+	})
+
+	onMount(() => {
+		cloudFunctions.tmdbGetConfiguration()
+	})
 
 	return (
 		<TmdbContext.Provider value={cloudFunctions}>
@@ -101,32 +351,4 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 
 export function useTmdb() {
 	return useContext(TmdbContext) as TmdbContext
-}
-
-const b = () => {
-
-	const [ a1, setA1 ] = createSignal()
-
-	async function a() {
-		// const url = "https://image.tmdb.org/t/p/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.svg"
-		const url = "https://image.tmdb.org/t/p/original/dKFL1AOdKNoazqZDg1zq2z69Lx1.jpg"
-		return await (await fetch(url, { method: "GET" })).blob()
-	}
-
-	a().then((v) => {
-		// console.log(new Uint8Array(v))
-		const a = v.arrayBuffer()
-
-		a.then((r) => {
-			setA1(URL.createObjectURL(new Blob([ r ])))
-
-		})
-	})
-
-	return (
-		<>
-			<p>test</p>
-			<img src={a1() as string}></img>
-		</>
-	)
 }
