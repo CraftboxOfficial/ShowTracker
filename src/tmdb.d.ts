@@ -58,6 +58,11 @@ interface TMDBSearchMultiSearchPerson {
 	popularity: number
 }
 
+export interface TMDBTvGetDetailsQuery {
+	tv_id: number,
+	language?: string
+} 
+
 export interface TMDBTvGetDetails {
 	backdrop_path: string | null,
 	created_by: {
