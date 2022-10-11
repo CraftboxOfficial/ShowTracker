@@ -13,7 +13,7 @@ import { useTmdb } from '../components/TmdbProvider';
 
 export const SearchPage: Component = () => {
 
-	const [ searchResults, setSearchResults ]: [ Accessor<[]>, Setter<[]> ] = createSignal([])
+	const [ searchResults, setSearchResults ]: [ Accessor<any[]>, Setter<any[]> ] = createSignal([])
 
 
 	const [ searchInput, setSearchInput ] = createSignal("")
@@ -37,9 +37,13 @@ export const SearchPage: Component = () => {
 	createEffect(() => {
 		if (searchInput()) {
 
-			tmdb.tmdbMultiSearch({ query: searchInput() }).then((r) => {
-				// @ts-ignore
-				setSearchResults(r.data.results)
+			tmdb.tmdbMultiSearch({
+				query: {
+					query: searchInput()
+				},
+				priority: 13
+			}).then((r) => {
+				setSearchResults(r?.results || [])
 			})
 
 		} else {
@@ -52,10 +56,10 @@ export const SearchPage: Component = () => {
 			<HomePageStyle>
 				<div id="top-bar">
 					<input id="search-input"
-					onInput={(e) => {
-						clearTimeout(typingTimer)
-						typingTimer = setTimeout(stoppedTyping, doneTypingInterval)
-					}}></input>
+						onInput={(e) => {
+							clearTimeout(typingTimer)
+							typingTimer = setTimeout(stoppedTyping, doneTypingInterval)
+						}}></input>
 				</div>
 				<div id="cards">
 					<For each={searchResults()}>
