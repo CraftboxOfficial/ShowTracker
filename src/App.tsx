@@ -95,8 +95,29 @@ const AppStyle = styled("div")((props) => {
 		button: {
 			fontSize: "inherit",
 			padding: "0",
-			margin: "0"
+			margin: "0",
+			backgroundColor: "unset",
+			border: "unset",
 		},
+
+		// "input:focus-visible": {
+		// 	transition: "outline-offset 75ms ease-out",
+		// 	outlineOffset: "0.2em",
+		// 	outline: "1px orange solid",
+		// 	zIndex: "100"
+		// },
+
+		"button:focus-visible": {
+			transition: "outline-offset 75ms ease-out",
+			outlineOffset: "0.2em",
+			outline: "1px orange solid",
+			zIndex: "100"
+		},
+
+		"button:not(:active):focus-visible": {
+			outlineOffset: "0.2em"
+		},
+
 
 		height: "100%",
 		minHeight: "100%",
