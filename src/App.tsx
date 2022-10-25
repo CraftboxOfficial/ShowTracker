@@ -1,19 +1,16 @@
-import { Component, useContext, createSignal, createEffect } from 'solid-js';
+import { Component, createEffect, createSignal } from 'solid-js';
 
-import logo from './logo.svg';
-import styles from './App.module.css';
 import { Route, Routes, useLocation, useNavigate } from '@solidjs/router';
-import { HomePage } from './pages/Home';
-import { DefaultTheme, styled, ThemeProvider } from 'solid-styled-components';
-import { PageSelect } from './navigation/PageSelect';
 import { StoreonProvider } from '@storeon/solidjs';
-import { store } from './State';
+import { DefaultTheme, styled, ThemeProvider } from 'solid-styled-components';
+import { CacheProvider } from './components/CacheProvider';
+import { NavBar } from './components/NavBar';
+import { TmdbProvider } from './components/TmdbProvider';
+import { HomePage } from './pages/Home';
 import { SearchPage } from './pages/Search';
 import { ShowsPage } from './pages/Shows';
-import { CacheProvider, useCache } from './components/CacheProvider';
-import { TmdbProvider } from './components/TmdbProvider';
 import { TvPage } from './pages/TvPage';
-import { NavBar } from './components/NavBar';
+import { store } from './State';
 
 const App: Component = () => {
 

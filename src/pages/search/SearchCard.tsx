@@ -1,9 +1,8 @@
-import { Component, Show, createSignal, Accessor, Setter, Switch, Match, createMemo, createEffect } from 'solid-js';
-import { styled } from 'solid-styled-components';
-import { Button } from '../../components/Button';
-import { useTmdb } from '../../components/TmdbProvider';
-import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearchTv, TMDBSearchMultiSearchMovie } from '../../tmdb';
 import { useNavigate } from '@solidjs/router';
+import { Accessor, Component, createEffect, createSignal, Setter, Show } from 'solid-js';
+import { styled } from 'solid-styled-components';
+import { useTmdb } from '../../components/TmdbProvider';
+import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearchTv } from '../../tmdb';
 
 export interface SearchCardTvI {
 	backdropPath: string,
