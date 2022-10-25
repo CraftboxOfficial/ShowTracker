@@ -1,142 +1,48 @@
-import { Component, Show, createSignal, Accessor, Setter, Switch, Match, createMemo, createEffect } from 'solid-js';
+import { Component } from "solid-js";
 import { styled } from 'solid-styled-components';
-import { Button } from './Button';
-import { useTmdb } from './TmdbProvider';
-import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearchTv, TMDBSearchMultiSearchMovie } from '../tmdb';
-import { useNavigate } from '@solidjs/router';
+import { TMDBSearchMultiSearchTv, TMDBSearchMultiSearchMovie } from '../../tmdb';
 
-export interface SearchCardTvI {
-	backdropPath: string,
-	firstAirDate: string,
-	genreIds: number[]
-	id: number,
-	mediaType: "tv",
-	name: string,
-	originalCountry: string[],
-	originalLanguage: string,
-	originalName: string,
-	overview: string,
-	popularity: number,
-	posterPath: string,
-	voteAverage: number,
-	voteCount: number
-}
+export const Card: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearchMultiSearchMovie)}> = (props) => {
 
-export interface SearchCardMovieI {
-	backdropPath: string,
-	firstAirDate: string,
-	genreIds: number[]
-	id: number,
-	mediaType: "tv",
-	name: string,
-	originalCountry: string[],
-	originalLanguage: string,
-	originalName: string,
-	overview: string,
-	popularity: number,
-	posterPath: string,
-	voteAverage: number,
-	voteCount: number
-}
-
-type InfoViewI = "overview" | "details"
-
-interface SearchCard extends HTMLDivElement {
-	card: (SearchCardTvI | SearchCardMovieI | undefined)
-}
-export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | undefined), class?: string }> = (props) => {
-
-	const tmdb = useTmdb()
-
-	const navigate = useNavigate()
-
-	const [ cardContent, setCardContent ]: [ Accessor<(TMDBSearchMultiSearchTv | undefined)>, Setter<(TMDBSearchMultiSearchTv | undefined)> ] = createSignal(props.card)
-	const [ infoView, setInfoView ]: [ Accessor<InfoViewI>, Setter<InfoViewI> ] = createSignal("details")
-
-	const [ configuration, setConfiguration ]: [ Accessor<TMDBConfigurationGetApiConfiguration | undefined>, Setter<TMDBConfigurationGetApiConfiguration | undefined> ] = createSignal()
-	tmdb.tmdbGetConfiguration().then((c) => setConfiguration(c))
-
-	const [ poster, setPoster ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
-
-	// createEffect(() => {
-	// console.log(cardContent())
-	createEffect(() => {
-		if (cardContent()) {
-			tmdb.tmdbGetImage({
-				priority: 13,
-				query: {
-					// @ts-expect-error
-					baseUrl: configuration()?.images.secure_base_url,
-					// @ts-expect-error
-					path: cardContent()?.poster_path,
-					size: "original"
-				}
-			}).then((blob) => {
-				// console.log(blob)
-				if (blob) {
-					setPoster(URL.createObjectURL(blob))
-				}
-			})
-		}
-	})
-	// })
+		const [ poster, setPoster ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
 
 
 	return (
 		<>
-			<SearchCardStyle class={props.class}>
-				<Show when={cardContent()} fallback={
-					<>
-						<div class="content-skeleton">
-							<div class="poster-skeleton"></div>
-							<div class="info-skeleton">
-								<div class="title-skeleton"></div>
-								<div class="details-skeleton">
-									<div class="air-skeleton"></div>
-									<div class="popularity-skeleton"></div>
-								</div>
-							</div>
+			<CardStyle>
+				<>
+					<div class="content">
+						<div class="poster">
+							<img src={poster()}></img>
 						</div>
-						<div class="controls-skeleton">
-							<div class="button-skeleton"></div>
-							<div class="button-skeleton"></div>
+						<div class="info">
+							<span class="title">{cardContent()?.name}</span>
+							<Switch>
+								<Match when={infoView() == "details"}>
+									<div class="details">
+										<span>First aired: {cardContent()?.firstAirDate}</span>
+										<span>Popularity: {cardContent()?.popularity}</span>
+									</div>
+								</Match>
+								<Match when={infoView() == "overview"}>
+									<div class="overview">
+										<span>{cardContent()?.overview}</span>
+									</div>
+								</Match>
+							</Switch>
 						</div>
-					</>
-				}>
-					<>
-						<div class="content" onClick={() => navigate(`tv/${props.card?.id}`)}>
-							<div class="poster">
-								<img src={poster()}></img>
-							</div>
-							<div class="info">
-								<span class="title">{cardContent()?.name}</span>
-								<Switch>
-									<Match when={infoView() == "details"}>
-										<div class="details">
-											<span>First aired: {cardContent()?.first_air_date}</span>
-											<span>Popularity: {cardContent()?.popularity}</span>
-										</div>
-									</Match>
-									<Match when={infoView() == "overview"}>
-										<div class="overview">
-											<span>{cardContent()?.overview}</span>
-										</div>
-									</Match>
-								</Switch>
-							</div>
-						</div>
-						<div class="controls">
-							<Button>add</Button>
-							<Button onClick={(e) => setInfoView(infoView() == "details" ? "overview" : "details")}>Info</Button>
-						</div>
-					</>
-				</Show>
-			</SearchCardStyle>
+					</div>
+					<div class="controls">
+						<Button>add</Button>
+						<Button onClick={(e) => setInfoView(infoView() == "details" ? "overview" : "details")}>Info</Button>
+					</div>
+				</>
+			</CardStyle>
 		</>
 	)
 }
 
-const SearchCardStyle = styled("div")(() => {
+const CardStyle = styled("div")(() => {
 	return {
 		color: "white",
 		backgroundColor: "rgb(20%, 20%, 20%)",
@@ -340,4 +246,5 @@ const SearchCardStyle = styled("div")(() => {
 		}
 
 	}
+
 })

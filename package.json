@@ -24,6 +24,7 @@
     "firebase": "^9.10.0",
     "localforage": "^1.10.0",
     "solid-firebase": "^0.1.4",
+    "solid-icons": "^1.0.2",
     "solid-js": "^1.5.1",
     "solid-styled-components": "^0.28.4",
     "vite-plugin-pwa": "^0.12.7"

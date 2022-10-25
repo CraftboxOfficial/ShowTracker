@@ -64,10 +64,16 @@ export const SearchPage: Component = () => {
 				<div id="cards">
 					<For each={searchResults()}>
 						{(card) => {
+							if (card.media_type == "tv") {
+								return (
+									<>
+										<SearchCard class="card" card={card} />
+									</>
+								)
+							}
+							
 							return (
-								<>
-									<SearchCard class="card" card={card} />
-								</>
+								<></>
 							)
 						}}
 					</For>

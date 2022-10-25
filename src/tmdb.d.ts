@@ -13,7 +13,7 @@ export interface TMDBSearchMultiSearch {
 	total_pages: number
 }
 
-interface TMDBSearchMultiSearchTv {
+export interface TMDBSearchMultiSearchTv {
 	poster_path: string | null,
 	popularity: number,
 	id: number,
@@ -30,7 +30,7 @@ interface TMDBSearchMultiSearchTv {
 	original_name: string,
 }
 
-interface TMDBSearchMultiSearchMovie {
+export interface TMDBSearchMultiSearchMovie {
 	poster_path: string | null,
 	adult: boolean,
 	overview: string,
@@ -48,7 +48,7 @@ interface TMDBSearchMultiSearchMovie {
 	vote_average: number,
 }
 
-interface TMDBSearchMultiSearchPerson {
+export interface TMDBSearchMultiSearchPerson {
 	profile_path: string | null,
 	adult: boolean,
 	id: number,

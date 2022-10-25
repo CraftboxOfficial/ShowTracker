@@ -27,7 +27,7 @@ interface TmdbContext {
 	tmdbGetTvDetails: (data: {
 		priority: number
 		query: TMDBTvGetDetailsQuery
-	}[]) => Promise<TMDBTvGetDetails | Promise<TMDBTvGetDetails | undefined>[] | undefined>,
+	}) => Promise<TMDBTvGetDetails | undefined>,
 }
 
 export type tmdbGetImage = {
@@ -246,11 +246,7 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				}
 			}
 
-			if (Array.isArray(data)) {
-				return data.map(async (data) => await getDetail(data))
-			} else {
-				return await getDetail(data)
-			}
+			return await getDetail(data)
 		}
 	}
 

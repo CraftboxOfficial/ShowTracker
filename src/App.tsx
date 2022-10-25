@@ -1,10 +1,10 @@
-import { Component, useContext } from 'solid-js';
+import { Component, useContext, createSignal, createEffect } from 'solid-js';
 
 import logo from './logo.svg';
 import styles from './App.module.css';
-import { Route, Routes } from '@solidjs/router';
+import { Route, Routes, useLocation, useNavigate } from '@solidjs/router';
 import { HomePage } from './pages/Home';
-import { styled } from 'solid-styled-components';
+import { DefaultTheme, styled, ThemeProvider } from 'solid-styled-components';
 import { PageSelect } from './navigation/PageSelect';
 import { StoreonProvider } from '@storeon/solidjs';
 import { store } from './State';
@@ -12,41 +12,99 @@ import { SearchPage } from './pages/Search';
 import { ShowsPage } from './pages/Shows';
 import { CacheProvider, useCache } from './components/CacheProvider';
 import { TmdbProvider } from './components/TmdbProvider';
+import { TvPage } from './pages/TvPage';
+import { NavBar } from './components/NavBar';
 
 const App: Component = () => {
 
+	const c = navigator.userAgent
 	// const app = useApp()
+
+	const navigate = useNavigate()
+	const location = useLocation()
+
+	const currentPath = () => location.pathname.split("/")[ 1 ] as "home" | "search" | "list" | ""
+	const [ currentPage, setCurrentPage ] = createSignal(currentPath())
+
+	createEffect(() => {
+		setCurrentPage(currentPath())
+		if (currentPath() == "") {
+			navigate("/home")
+		}
+	})
+
+	const darkTheme: DefaultTheme = {
+		main: {
+			text: "#FFFFFF",
+			main: "#2B2B2B"
+		},
+		card: {
+			main: "#383838",
+			accent: "#555555",
+			highlight: "#C5C5C5",
+			highlight2: "#D9D9D9",
+			outlineTop: [ "#55555540", "#555555FF" ],
+			outLineBottom: [ "#555555FF", "#55555540" ]
+		},
+		tv: {
+			main: "#3C4CDC",
+			highlight: "#B7BEFF"
+		},
+		movie: {
+			main: "#AA3B3B",
+			highlight: "#FFC9C9"
+		},
+		effects: {
+			accept: "#5CDC3C"
+		},
+		tags: {
+			fantasy: "#DC3C75"
+		}
+	}
 
 	return (
 		<>
-			<StoreonProvider store={store}>
-				<TmdbProvider>
-					<CacheProvider>
-						<AppStyle>
-							<Routes>
-								<Route path="/" component={HomePage} />
-								<Route path="/search" component={SearchPage} />
-								<Route path="/shows" component={ShowsPage} />
-							</Routes>
-							<PageSelect />
-						</AppStyle>
-					</CacheProvider>
-				</TmdbProvider>
-			</StoreonProvider>
+			<ThemeProvider theme={darkTheme}>
+				<StoreonProvider store={store}>
+					<TmdbProvider>
+						<CacheProvider>
+							<AppStyle>
+								<Routes>
+									<Route path="/home" component={HomePage} />
+									<Route path="/search" component={SearchPage} />
+									<Route path="/search/tv" component={() => { navigate("/search", { resolve: false }); return <></> }} />
+									<Route path="/search/tv/:tvId" component={TvPage} />
+									<Route path="/list" component={ShowsPage} />
+								</Routes>
+								<NavBar selectedPage={currentPage} />
+							</AppStyle>
+						</CacheProvider>
+					</TmdbProvider>
+				</StoreonProvider>
+			</ThemeProvider>
 		</>
 	);
 };
 
 export default App;
 
-const AppStyle = styled("div")(() => {
+const AppStyle = styled("div")((props) => {
 	return {
+		fontSize: "inherit",
+
+		button: {
+			fontSize: "inherit",
+			padding: "0",
+			margin: "0"
+		},
+
 		height: "100%",
 		minHeight: "100%",
 		width: "100%",
 		minWidth: "100%",
 		display: "flex",
 		flexDirection: "column",
-		backgroundColor: "rgb(10%, 10%, 10%)"
+
+		backgroundColor: props.theme?.main.main
 	}
 })
