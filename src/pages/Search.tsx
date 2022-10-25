@@ -1,14 +1,7 @@
-import { Component, createSignal, createEffect, onMount, For, Accessor, Setter } from 'solid-js';
+import { Accessor, Component, createEffect, createSignal, For, JSXElement, onMount, Setter, Show } from 'solid-js';
 import { styled } from 'solid-styled-components';
-import { SearchCard, SearchCardTvI } from '../components/SearchCard';
-import { SearchBar } from '../components/SearchBar';
-// @ts-expect-error
-import dummyJson from "../../apiMultiSearch.dummy.json"
-// import * as functions from 'firebase-functions';
-import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
-import { TMDBMultiSearchQuery } from 'functions/src';
-import { useFirebaseApp } from 'solid-firebase';
-import { useCache } from '../components/CacheProvider';
+import { SearchCard } from '../components/SearchCard';
+import { BiRegularFilterAlt, BiRegularLoaderAlt, BiRegularSearchAlt } from 'solid-icons/bi';
 import { useTmdb } from '../components/TmdbProvider';
 
 export const SearchPage: Component = () => {
@@ -19,120 +12,232 @@ export const SearchPage: Component = () => {
 	const [ searchInput, setSearchInput ] = createSignal("")
 
 	let typingTimer: NodeJS.Timeout
-	const doneTypingInterval = 1000
+	const doneTypingInterval = 400
 
 	let inputElem = document.getElementById("search-input")
 	onMount(() => {
 		inputElem = document.getElementById("search-input")
-		// console.log(worker)
 	})
 
 	const stoppedTyping = () => {
 		// @ts-expect-error
 		setSearchInput(inputElem.value)
+
+		// @ts-expect-error
+		if (searchInput() != inputElem.value) {
+			setIsSearching(true)
+		}
 	}
 
 	const tmdb = useTmdb()
 
 	createEffect(() => {
 		if (searchInput()) {
-
+			setIsSearching(true)
 			tmdb.tmdbMultiSearch({
 				query: {
 					query: searchInput()
 				},
 				priority: 13
 			}).then((r) => {
+				setIsSearching(false)
 				setSearchResults(r?.results || [])
 			})
 
 		} else {
+			setIsSearching(false)
 			setSearchResults([])
 		}
 	})
 
+	const [ isSearching, setIsSearching ] = createSignal(false)
+
+	/* TODO
+	 >> suggest last few searches
+	 >> add filters panel
+	 >> add filtering
+	 */
+
 	return (
 		<>
 			<HomePageStyle>
-				<div id="top-bar">
-					<input id="search-input"
-						onInput={(e) => {
-							clearTimeout(typingTimer)
-							typingTimer = setTimeout(stoppedTyping, doneTypingInterval)
-						}}></input>
+				<div
+					id="top-background"
+				>
+					<div
+						id="top-bar"
+						onClick={(e) => {
+							e.preventDefault()
+							const input = document.getElementById("search-input")
+							input?.focus()
+						}}>
+
+						<input id="search-input"
+							type='text'
+							autocomplete="off"
+							placeholder='search...'
+							onClick={(e) => {
+								e.stopPropagation()
+							}}
+							onInput={(e) => {
+								clearTimeout(typingTimer)
+								typingTimer = setTimeout(stoppedTyping, doneTypingInterval)
+							}}>
+
+						</input>
+
+						<Show when={isSearching()} >
+							<div class="search-bar-btn">
+								<BiRegularLoaderAlt class="search-bar-ico" id="searching-ico" size={24} />
+							</div>
+						</Show>
+
+						<button
+							id="search-btn"
+							class="search-bar-btn"
+							onClick={(e) => {
+								e.stopPropagation()
+
+								clearTimeout(typingTimer)
+								stoppedTyping()
+							}}>
+							<BiRegularSearchAlt class="search-bar-ico" size={24} />
+						</button>
+
+						<button disabled // TODO temporary
+							id="filter-btn"
+							class="search-bar-btn"
+							onClick={(e) => {
+								e.stopPropagation()
+							}}>
+							<BiRegularFilterAlt class="search-bar-ico" size={24} />
+						</button>
+
+					</div>
 				</div>
-				<div id="cards">
-					<For each={searchResults()}>
-						{(card) => {
-							if (card.media_type == "tv") {
-								return (
-									<>
-										<SearchCard class="card" card={card} />
-									</>
-								)
-							}
-							
-							return (
-								<></>
-							)
-						}}
-					</For>
-				</div>
+				<Show when={searchInput()} fallback={
+					<div id="empty-content">
+						<span>Let's search for something :D</span>
+					</div>
+				}>
+					<Show when={searchResults().length > 0 || isSearching()} fallback={
+						<div id="empty-content">
+							<span>We couldn't find what you're looking for D:</span>
+						</div>
+					}>
+						<div id="cards">
+							<For each={searchResults()}>
+								{(card) => {
+									if (card.media_type == "tv") {
+										return (
+											<>
+												<SearchCard class="card" card={card} />
+											</>
+										)
+									}
+
+									return (
+										<></>
+									)
+								}}
+							</For>
+						</div>
+					</Show>
+				</Show>
 			</HomePageStyle>
 		</>
 	)
 }
 
-const HomePageStyle = styled("div")(() => {
+const HomePageStyle = styled("div")((props) => {
 	return {
-		height: "100%",
-		maxHeight: "100%",
-		// minHeight: "100%",
-		width: "100%",
-		color: "white",
+		height: "inherit",
+		zIndex: "inherit",
+		overflow: "auto",
+
 		display: "flex",
 		flexDirection: "column",
-		alignContent: "center",
-		alignItems: "center",
-		overflow: "hidden",
 
-		"#top-bar": {
-			// width: "50vw",
-			minHeight: "40px",
-			width: "100%",
-			padding: "10px 0 10px 0",
-			position: "sticky",
-			// top: "0",
-			// backgroundColor: "rgba(0%, 0%, 0%, 0%)"
-			// backgroundImage: "linear-gradient(rgba(0%, 0%, 0%, 100%), rgba(0%, 0%, 0%, 0%))", // TODO set to theme
-			display: "flex",
-			flexDirection: "row",
-			justifyContent: "space-around",
+		color: props.theme?.main.text,
 
+		"#filter-btn": { //TODO temporary
+			color: props.theme?.card.accent
 		},
 
-		"#cards": {
-			width: "100%",
+		"#empty-content": {
+			// width: "fit-content",
 			height: "100%",
+			// margin: "auto",
+			fontSize: "1.1em",
+
 			display: "flex",
 			flexDirection: "column",
-			alignContent: "center",
+
 			alignItems: "center",
-			overflowY: "scroll",
+			justifyContent: "center"
+		},
 
-			//calc(50px + 1.25%)
-			padding: "0 0 25vh 0",
+		"#top-background": {
+			backgroundColor: props.theme?.main.main,
+			position: "sticky",
+			top: "-1px",
+			zIndex: "10",
 
-			// ".filler": {
-			// 	width: "100%",
-			// 	height: "100px"
-			// }
+			padding: "0.5em",
+		},
 
-			".card": {
-				width: "95%",
-				margin: "1.25% 0"
+		"#top-bar": {
+			height: "4em",
+			backgroundColor: props.theme?.card.main,
+			borderRadius: "4em",
+
+			display: "flex",
+			flexDirection: "row",
+			padding: "0 2em 0 2em",
+
+			input: {
+				width: "100%",
+				backgroundColor: "unset",
+				border: "none",
+				color: props.theme?.main.text,
+				fontSize: "1.5em"
+			},
+
+			"input:focus": {
+				outline: "none"
 			}
 		},
 
+		".search-bar-btn": {
+			display: "flex",
+			flexDirection: "column",
+			alignItems: "center",
+			justifyContent: "center",
+
+			minHeight: "4em",
+			minWidth: "3.5em",
+			color: props.theme?.card.highlight
+		},
+
+		".search-bar-ico": {
+			height: "calc(0.1em * 24)",
+			width: "calc(0.1em * 24)"
+		},
+
+		"#searching-ico": {
+			animationName: "loading",
+			animationDuration: "1s",
+			animationIterationCount: "infinite",
+			animationTimingFunction: "ease-in-out"
+		},
+
+		"@keyframes loading": {
+			"0%": {
+				rotate: "0deg"
+			},
+			"100%": {
+				rotate: "360deg"
+			}
+		}
 	}
 })
