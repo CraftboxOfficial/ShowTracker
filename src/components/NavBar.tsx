@@ -57,16 +57,19 @@ const NavBarStyle = styled("div")((props) => {
 		width: "100%",
 		backgroundColor: props.theme?.card.main,
 		padding: "0.5em 0",
-		borderRadius: "25px 25px 0px 0px",
+		// borderRadius: "25px 25px 0px 0px",
 
 		display: "flex",
 		flexDirection: "row",
 		justifyContent: "space-around",
 
+		zIndex: "10",
 		// borderWidth: "10px",
 		// borderStyle: "solid",
 		// borderImage: `linear-gradient(0deg, #555555FF, #55555540) 100% round`,
 		// border: "10px solid",
+
+		outline: `1px solid ${props.theme?.card.accent}`,
 
 
 		".nav-btn": {
