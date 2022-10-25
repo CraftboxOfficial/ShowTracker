@@ -1,6 +1,6 @@
 import { Accessor, Component, createEffect, createSignal, For, JSXElement, onMount, Setter, Show } from 'solid-js';
 import { styled } from 'solid-styled-components';
-import { SearchCard } from '../components/SearchCard';
+import { SearchCard } from './search/SearchCard';
 import { BiRegularFilterAlt, BiRegularLoaderAlt, BiRegularSearchAlt } from 'solid-icons/bi';
 import { useTmdb } from '../components/TmdbProvider';
 
@@ -159,6 +159,10 @@ const HomePageStyle = styled("div")((props) => {
 		flexDirection: "column",
 
 		color: props.theme?.main.text,
+
+		"#cards": {
+			padding: "0 0.5em",
+		},
 
 		"#filter-btn": { //TODO temporary
 			color: props.theme?.card.accent
