@@ -3,7 +3,7 @@ import { styled } from 'solid-styled-components';
 import { BiRegularHomeAlt, BiRegularListUl, BiRegularSearchAlt } from 'solid-icons/bi'
 import { useNavigate, useParams as useLocation } from '@solidjs/router';
 
-export const NavBar: Component<{ selectedPage: Accessor<"home" | "search" | "list" | ""> }> = (props) => {
+export const NavBar: Component<{ selectedPage: Accessor<"home" | "search" | "list" | "" | null> }> = (props) => {
 
 
 	const navigate = useNavigate()

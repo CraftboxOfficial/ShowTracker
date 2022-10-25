@@ -23,11 +23,19 @@ const App: Component = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
 
-	const currentPath = () => location.pathname.split("/")[ 1 ] as "home" | "search" | "list" | ""
+	const currentPath = () => (() => {
+		const arr = location.pathname.split("/")
+		if (arr.length <= 2) {
+			return arr[ 1 ]
+		} else {
+			return null
+		}
+	})() as "home" | "search" | "list" | "" | null
 	const [ currentPage, setCurrentPage ] = createSignal(currentPath())
 
 	createEffect(() => {
 		setCurrentPage(currentPath())
+		console.log(currentPage())
 		if (currentPath() == "") {
 			navigate("/home")
 		}
