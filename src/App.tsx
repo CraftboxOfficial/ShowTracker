@@ -22,7 +22,7 @@ const App: Component = () => {
 
 	const currentPath = () => (() => {
 		const arr = location.pathname.split("/")
-		if (arr.length <= 2) {
+		if (arr.length >= 2) {
 			return arr[ 1 ]
 		} else {
 			return null
@@ -32,7 +32,6 @@ const App: Component = () => {
 
 	createEffect(() => {
 		setCurrentPage(currentPath())
-		console.log(currentPage())
 		if (currentPath() == "") {
 			navigate("/home")
 		}
