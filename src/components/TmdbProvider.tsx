@@ -92,7 +92,7 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 	const cache = useCache()
 
 	const functions = getFunctions(app)
-	connectFunctionsEmulator(functions, "localhost", 5001)
+	connectFunctionsEmulator(functions, "192.168.1.182", 5001)
 
 
 	const cloudFunctions: TmdbContext = { //TODO convert all of these to be similar to the last one

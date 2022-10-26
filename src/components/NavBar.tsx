@@ -63,6 +63,8 @@ const NavBarStyle = styled("div")((props) => {
 		flexDirection: "row",
 		justifyContent: "space-around",
 
+		position: "sticky",
+		bottom: "0",
 		zIndex: "10",
 		// borderWidth: "10px",
 		// borderStyle: "solid",
