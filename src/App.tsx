@@ -77,8 +77,9 @@ const App: Component = () => {
 								<Routes>
 									<Route path="/home" component={HomePage} />
 									<Route path="/search" component={SearchPage} />
-									<Route path="/search/tv" component={() => { navigate("/search", { resolve: false }); return <></> }} />
-									<Route path="/search/tv/:tvId" component={TvPage} />
+									<Route path="/search/:searchString" component={SearchPage} />
+									<Route path="/tv" component={() => { navigate("/search", { resolve: false }); return <></> }} />
+									<Route path="/tv/:tvId" component={TvPage} />
 									<Route path="/list" component={ShowsPage} />
 								</Routes>
 								<NavBar selectedPage={currentPage} />

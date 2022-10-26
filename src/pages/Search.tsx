@@ -3,8 +3,22 @@ import { styled } from 'solid-styled-components';
 import { SearchCard } from './search/SearchCard';
 import { BiRegularFilterAlt, BiRegularLoaderAlt, BiRegularSearchAlt } from 'solid-icons/bi';
 import { useTmdb } from '../components/TmdbProvider';
+import { useNavigate, useParams } from '@solidjs/router';
 
 export const SearchPage: Component = () => {
+
+	const navigate = useNavigate()
+	const params = useParams()
+
+	const [ paramSearch, setParamSearch ] = createSignal("")
+
+	onMount(() => {
+		console.log(params.searchString)
+		if (params.searchString) {
+			setParamSearch(decodeURI(params.searchString))
+			setSearchInput(paramSearch())
+		}
+	})
 
 	const [ searchResults, setSearchResults ]: [ Accessor<any[]>, Setter<any[]> ] = createSignal([])
 
@@ -32,6 +46,10 @@ export const SearchPage: Component = () => {
 	const tmdb = useTmdb()
 
 	createEffect(() => {
+		if (searchInput() != paramSearch()) {
+			navigate(`/search/${encodeURI(searchInput())}`, { resolve: false })
+		}
+
 		if (searchInput()) {
 			setIsSearching(true)
 			tmdb.tmdbMultiSearch({
@@ -41,7 +59,7 @@ export const SearchPage: Component = () => {
 				priority: 13
 			}).then((r) => {
 				setIsSearching(false)
-				setSearchResults(r?.results || [])
+				setSearchResults(r?.results.filter((v) => v.media_type != 'person') || [])
 			})
 
 		} else {
@@ -73,9 +91,10 @@ export const SearchPage: Component = () => {
 						}}>
 
 						<input id="search-input"
-							type='text'
+							type='search'
 							autocomplete="off"
 							placeholder='search...'
+							value={searchInput()}
 							onClick={(e) => {
 								e.stopPropagation()
 							}}
@@ -128,17 +147,13 @@ export const SearchPage: Component = () => {
 						<div id="cards">
 							<For each={searchResults()}>
 								{(card) => {
-									if (card.media_type == "tv") {
-										return (
-											<>
-												<SearchCard class="card" card={card} />
-											</>
-										)
-									}
-
+									// if (card.media_type == "tv") {
 									return (
-										<></>
+										<>
+											<SearchCard class="card" card={card} />
+										</>
 									)
+									// }
 								}}
 							</For>
 						</div>
@@ -153,7 +168,7 @@ const HomePageStyle = styled("div")((props) => {
 	return {
 		height: "inherit",
 		zIndex: "inherit",
-		overflow: "auto",
+		// overflow: "auto",
 
 		display: "flex",
 		flexDirection: "column",
@@ -161,7 +176,9 @@ const HomePageStyle = styled("div")((props) => {
 		color: props.theme?.main.text,
 
 		"#cards": {
-			padding: "0 0.5em",
+			padding: "0 0.5em 12em 0.5em",
+			overflow: "auto",
+			zIndex: "0"
 		},
 
 		"#filter-btn": { //TODO temporary
@@ -205,6 +222,22 @@ const HomePageStyle = styled("div")((props) => {
 				border: "none",
 				color: props.theme?.main.text,
 				fontSize: "1.5em"
+			},
+
+			'input[type="search"]::-webkit-search-decoration': {
+				display: "none",
+			},
+
+			'input[ type = "search" ]::-webkit-search-cancel-button': {
+				display: "none",
+			},
+
+			'input[ type = "search" ]::-webkit-search-results-button': {
+				display: "none",
+			},
+
+			'input[ type = "search" ]::-webkit-search-results-decoration': {
+				display: "none",
 			},
 
 			"input:focus": {
