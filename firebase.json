@@ -24,10 +24,12 @@
   },
   "emulators": {
     "functions": {
-      "port": 5001
+      "port": 5001,
+      "host": "192.168.1.182"
     },
     "hosting": {
-      "port": 5000
+      "port": 5000,
+      "host": "192.168.1.182"
     },
     "ui": {
       "enabled": true
