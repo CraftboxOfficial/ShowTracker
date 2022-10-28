@@ -1,10 +1,8 @@
 import { connectFunctionsEmulator, getFunctions, HttpsCallable, httpsCallable, HttpsCallableResult } from "firebase/functions";
 import { tmdbGetConfigurationData, tmdbGetConfigurationResponses, tmdbGetImagesData, TMDBMultiSearchQuery } from "functions/src";
-import { useFirebaseApp } from "solid-firebase";
-import { Component, createContext, JSXElement, useContext, onMount, createSignal, onCleanup } from 'solid-js';
-import { useCache } from "./CacheProvider";
-import { base64 } from '@firebase/util';
 import localforage from 'localforage';
+import { useFirebaseApp } from "solid-firebase";
+import { Component, createContext, JSXElement, onCleanup, onMount, useContext } from 'solid-js';
 import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearch, TMDBTvGetDetails, TMDBTvGetDetailsQuery } from '../tmdb';
 
 const TmdbContext = createContext()
@@ -13,21 +11,26 @@ interface TmdbContext {
 	tmdbMultiSearch: (data: {
 		priority: number
 		query: TMDBMultiSearchQuery
-	}) => Promise<TMDBSearchMultiSearch | undefined>,
+	}) => Promise<TMDBSearchMultiSearch>,
 
-	tmdbGetConfiguration: () => Promise<TMDBConfigurationGetApiConfiguration | undefined>,
+	tmdbGetConfiguration: () => Promise<TMDBConfigurationGetApiConfiguration>,
 
 	tmdbGetImagesData: HttpsCallable<tmdbGetImagesData, unknown>,
 
 	tmdbGetImage: (data: {
 		priority: number,
 		query: tmdbGetImage
-	}) => Promise<Blob | undefined>,
+	}) => Promise<Blob>,
 
 	tmdbGetTvDetails: (data: {
 		priority: number
 		query: TMDBTvGetDetailsQuery
-	}) => Promise<TMDBTvGetDetails | undefined>,
+	}) => Promise<TMDBTvGetDetails>,
+
+	// tmdbGetMovieDetails: (data: {
+	// 	priority: number
+	// 	query: TMDBTvGetDetailsQuery
+	// }) => Promise<TMDBTvGetDetails>,
 }
 
 export type tmdbGetImage = {
@@ -89,7 +92,6 @@ const MEGABYTE = 1000000
 export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 
 	const app = useFirebaseApp()
-	const cache = useCache()
 
 	const functions = getFunctions(app)
 	connectFunctionsEmulator(functions, "192.168.1.182", 5001)
@@ -117,18 +119,18 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				return retrivedQuery.data
 			}
 
-			if (!retrivedQuery) {
-				const response = await call({ ...data.query }) as HttpsCallableResult<TMDBSearchMultiSearch>
+			// if (!retrivedQuery) {
+			const response = await call({ ...data.query }) as HttpsCallableResult<TMDBSearchMultiSearch>
 
-				searchQueryStore.setItem(queryKey, {
-					lastUsedOn: new Date(),
-					createdOn: new Date(),
-					priority: data.priority,
-					data: response.data
-				} as savedSearchQuery)
+			searchQueryStore.setItem(queryKey, {
+				lastUsedOn: new Date(),
+				createdOn: new Date(),
+				priority: data.priority,
+				data: response.data
+			} as savedSearchQuery)
 
-				return response.data
-			}
+			return response.data
+			// }
 
 		},
 
@@ -153,18 +155,18 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				return retrivedConfiguration.data
 			}
 
-			if (!retrivedConfiguration) {
-				const response = await call({ getApiConfiguration: true }) as HttpsCallableResult<tmdbGetConfigurationResponses>
+			// if (!retrivedConfiguration) {
+			const response = await call({ getApiConfiguration: true }) as HttpsCallableResult<tmdbGetConfigurationResponses>
 
-				configurationStore.setItem(configurationKey, {
-					lastUsedOn: new Date(),
-					createdOn: new Date(),
-					priority: 1,
-					data: response.data.apiConfiguration
-				} as savedApiConfiguration)
+			configurationStore.setItem(configurationKey, {
+				lastUsedOn: new Date(),
+				createdOn: new Date(),
+				priority: 1,
+				data: response.data.apiConfiguration
+			} as savedApiConfiguration)
 
-				return response.data.apiConfiguration
-			}
+			return response.data.apiConfiguration
+			// }
 
 		},
 
@@ -190,19 +192,19 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				return retrivedImage.blob
 			}
 
-			if (!retrivedImage) {
-				const url = `${image.query.baseUrl}${image.query.size}${image.query.path}`
-				const blob = await (await fetch(url, { method: "GET" })).blob()
+			// if (!retrivedImage) {
+			const url = `${image.query.baseUrl}${image.query.size}${image.query.path}`
+			const blob = await (await fetch(url, { method: "GET" })).blob()
 
-				imageStore.setItem(imageKey, {
-					lastUsedOn: new Date(),
-					createdOn: new Date(),
-					priority: image.priority,
-					blob: blob
-				} as savedImage)
+			imageStore.setItem(imageKey, {
+				lastUsedOn: new Date(),
+				createdOn: new Date(),
+				priority: image.priority,
+				blob: blob
+			} as savedImage)
 
-				return blob
-			}
+			return blob
+			// }
 		},
 
 		tmdbGetTvDetails: async (data) => {
@@ -232,18 +234,18 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 					return retrivedDetails.data
 				}
 
-				if (!retrivedDetails) {
-					const response = await call({ ...data.query }) as HttpsCallableResult<TMDBTvGetDetails>
+				// if (!retrivedDetails) {
+				const response = await call({ ...data.query }) as HttpsCallableResult<TMDBTvGetDetails>
 
-					detailsStore.setItem(detailsKey, {
-						lastUsedOn: new Date(),
-						createdOn: new Date(),
-						priority: data.priority,
-						data: response.data
-					} as savedTvDetails)
+				detailsStore.setItem(detailsKey, {
+					lastUsedOn: new Date(),
+					createdOn: new Date(),
+					priority: data.priority,
+					data: response.data
+				} as savedTvDetails)
 
-					return response.data
-				}
+				return response.data
+				// }
 			}
 
 			return await getDetail(data)
@@ -260,7 +262,7 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 		})
 
 		searchQueryStore.iterate((v: savedSearchQuery, k) => {
-			console.log(v)
+			// console.log(v)
 			if (v.priority >= 14) {
 				searchQueryStore.removeItem(k)
 			}
