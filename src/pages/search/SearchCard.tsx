@@ -5,6 +5,7 @@ import { MediaType } from '../../components/MediaType';
 import { useTmdb } from '../../components/TmdbProvider';
 import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearchMovie, TMDBSearchMultiSearchTv } from '../../tmdb';
 import { BiRegularLoaderAlt } from 'solid-icons/bi';
+import { ImageLoader } from '../common/ImageLoader';
 
 export interface SearchCardTvI {
 	backdropPath: string,
@@ -51,34 +52,6 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 
 	const navigate = useNavigate()
 
-	const [ configuration, setConfiguration ]: [ Accessor<TMDBConfigurationGetApiConfiguration | undefined>, Setter<TMDBConfigurationGetApiConfiguration | undefined> ] = createSignal()
-	tmdb.tmdbGetConfiguration().then((c) => setConfiguration(c))
-
-	const [ poster, setPoster ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
-
-	const [ posterLoading, setPosterLoading ] = createSignal(true)
-
-	createEffect(() => {
-		if (props.card.poster_path && configuration()) {
-			setPosterLoading(true)
-			tmdb.tmdbGetImage({
-				priority: 13,
-				query: {
-					// @ts-expect-error
-					baseUrl: configuration().images.secure_base_url,
-					path: props.card?.poster_path,
-					size: "w154"
-				}
-			}).then((blob) => {
-				if (blob) {
-					setPoster(URL.createObjectURL(blob))
-				}
-			})
-		}
-		setPosterLoading(false)
-	})
-
-
 	function getTextDate() {
 		const monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
 
@@ -100,22 +73,17 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 			<SearchCardStyle
 				class={props.class}
 				onClick={(e) => {
-					navigate(`tv/${props.card?.id}`, { resolve: false })
+					navigate(`${props.card.media_type}/${props.card?.id}`, { resolve: false })
 				}}>
 				<div class="show-poster">
-					<Show when={!posterLoading()} fallback={
-						<div class="image-loading">
-							<BiRegularLoaderAlt id="searching-ico" size={24} />
-						</div>
-					}>
-						<Show when={poster()} fallback={
-							<div class="show-no-image">
-								<span>No image</span>
-							</div>
-						}>
-							<img src={poster()}></img>
-						</Show>
-					</Show>
+					<ImageLoader class="show-image" data={{
+						priority: 13,
+						query: {
+							path: props.card?.poster_path,
+							imageType: "poster",
+							size: 1
+						}
+					}} />
 				</div>
 
 				<div class="show-content" >
@@ -150,13 +118,20 @@ const SearchCardStyle = styled("div")((props) => {
 			minWidth: "8em",
 			borderRadius: "10px",
 
-			img: {
+			// img: {
+			// 	height: "100%",
+			// 	width: "8em",
+			// 	borderRadius: "10px",
+			// 	boxShadow: "8px 0 4px 0 #00000019",
+
+			// }
+
+			".show-image": {
 				height: "100%",
 				width: "8em",
 				borderRadius: "10px",
 				boxShadow: "8px 0 4px 0 #00000019",
-
-			}
+			},
 		},
 
 		".show-content": {
@@ -176,42 +151,44 @@ const SearchCardStyle = styled("div")((props) => {
 			}
 		},
 
-		".show-no-image": {
-			height: "100%",
-			width: "8em",
-			borderRadius: "10px",
 
-			backgroundColor: props.theme?.card.accent,
 
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
+		// ".show-no-image": {
+		// 	height: "100%",
+		// 	width: "8em",
+		// 	borderRadius: "10px",
 
-			boxShadow: "8px 0 4px 0 #00000019",
+		// 	backgroundColor: props.theme?.card.accent,
 
-			span: {
-				fontSize: "1.1em",
-				color: props.theme?.card.highlight2
-			}
-		},
+		// 	display: "flex",
+		// 	alignItems: "center",
+		// 	justifyContent: "center",
 
-		".image-loading": {
-			height: "100%",
-			width: "100%",
-			borderRadius: "10px",
+		// 	boxShadow: "8px 0 4px 0 #00000019",
 
-			// backgroundColor: "red",
-			boxShadow: "8px 0 4px 0 #00000019",
+		// 	span: {
+		// 		fontSize: "1.1em",
+		// 		color: props.theme?.card.highlight2
+		// 	}
+		// },
 
-			display: "flex",
-			alignItems: "center",
-			justifyContent: "center",
+		// ".image-loading": {
+		// 	height: "100%",
+		// 	width: "100%",
+		// 	borderRadius: "10px",
 
-			"#searching-ico": {
-				height: "calc(0.1em * 36)",
-				width: "calc(0.1em * 36)"
-			}
-		},
+		// 	// backgroundColor: "red",
+		// 	boxShadow: "8px 0 4px 0 #00000019",
+
+		// 	display: "flex",
+		// 	alignItems: "center",
+		// 	justifyContent: "center",
+
+		// 	"#searching-ico": {
+		// 		height: "calc(0.1em * 36)",
+		// 		width: "calc(0.1em * 36)"
+		// 	}
+		// },
 
 		".show-info": {
 			display: "flex",
