@@ -1,7 +1,6 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
 import './index.css';
-import App from './App';
 
 // Import the functions you need from the SDKs you need
 import { FirebaseOptions, initializeApp } from "firebase/app";
@@ -11,6 +10,7 @@ import { createResource, onMount } from 'solid-js';
 import { connectFunctionsEmulator, Functions, getFunctions, httpsCallable } from 'firebase/functions';
 import { TMDBMultiSearchQuery } from 'functions/src';
 import { FirebaseProvider } from 'solid-firebase';
+import { App } from './App';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
