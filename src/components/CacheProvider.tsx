@@ -153,12 +153,12 @@ export const CacheProvider: Component<{ children: JSXElement }> = (props) => {
 		if (missingConfiguration.length > 0) {
 			// console.log(missingConfiguration)
 			// const request = await tmdb.tmdbGetConfiguration({
-				// getApiConfiguration: missingConfiguration.includes("apiConfiguration"),
-				// getCountries: missingConfiguration.includes("countries"),
-				// getJobs: missingConfiguration.includes("jobs"),
-				// getLanguages: missingConfiguration.includes("languages"),
-				// getPrimaryTranslations: missingConfiguration.includes("primaryTranslations"),
-				// getTimezones: missingConfiguration.includes("timezones")
+			// getApiConfiguration: missingConfiguration.includes("apiConfiguration"),
+			// getCountries: missingConfiguration.includes("countries"),
+			// getJobs: missingConfiguration.includes("jobs"),
+			// getLanguages: missingConfiguration.includes("languages"),
+			// getPrimaryTranslations: missingConfiguration.includes("primaryTranslations"),
+			// getTimezones: missingConfiguration.includes("timezones")
 			// })
 
 			// configurationObj = { ...configurationObj, ...request.data as object }

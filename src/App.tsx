@@ -11,8 +11,9 @@ import { SearchPage } from './pages/Search';
 import { ShowsPage } from './pages/Shows';
 import { TvPage } from './pages/TvPage';
 import { store } from './State';
+import { MoviePage } from './pages/MoviePage';
 
-const App: Component = () => {
+export const App: Component = () => {
 
 	const c = navigator.userAgent
 	// const app = useApp()
@@ -45,8 +46,8 @@ const App: Component = () => {
 		card: {
 			main: "#383838",
 			accent: "#555555",
-			highlight: "#C5C5C5",
-			highlight2: "#D9D9D9",
+			highlight: "#B5B5B5",
+			highlight2: "#E9E9E9",
 			outlineTop: [ "#55555540", "#555555FF" ],
 			outLineBottom: [ "#555555FF", "#55555540" ]
 		},
@@ -71,27 +72,26 @@ const App: Component = () => {
 			<ThemeProvider theme={darkTheme}>
 				<StoreonProvider store={store}>
 					<TmdbProvider>
-						<CacheProvider>
-							<AppStyle>
-								<Routes>
-									<Route path="/home" component={HomePage} />
-									<Route path="/search" component={SearchPage} />
-									<Route path="/search/:searchString" component={SearchPage} />
-									<Route path="/tv" component={() => { navigate("/search", { resolve: false }); return <></> }} />
-									<Route path="/tv/:tvId" component={TvPage} />
-									<Route path="/list" component={ShowsPage} />
-								</Routes>
-								<NavBar selectedPage={currentPage} />
-							</AppStyle>
-						</CacheProvider>
+						{/* <CacheProvider> */}
+						<AppStyle>
+							<Routes>
+								<Route path="/home" component={HomePage} />
+								<Route path="/search" component={SearchPage} />
+								<Route path="/search/:searchString" component={SearchPage} />
+								<Route path="/tv" component={() => { navigate("/search", { resolve: false }); return <></> }} />
+								<Route path="/tv/:tvId" component={TvPage} />
+								<Route path="/list" component={ShowsPage} />
+								<Route path="/movie/:movieId" component={MoviePage} />
+							</Routes>
+							<NavBar selectedPage={currentPage} />
+						</AppStyle>
+						{/* </CacheProvider> */}
 					</TmdbProvider>
 				</StoreonProvider>
 			</ThemeProvider>
 		</>
 	);
 };
-
-export default App;
 
 const AppStyle = styled("div")((props) => {
 	return {
