@@ -13,10 +13,12 @@ export const SearchPage: Component = () => {
 	const [ paramSearch, setParamSearch ] = createSignal("")
 
 	onMount(() => {
-		console.log(params.searchString)
+		// console.log(params.searchString)
 		if (params.searchString) {
 			setParamSearch(decodeURI(params.searchString))
 			setSearchInput(paramSearch())
+			const input = document.getElementById("search-input")
+			input?.focus()
 		}
 	})
 
@@ -47,7 +49,7 @@ export const SearchPage: Component = () => {
 
 	createEffect(() => {
 		if (searchInput() != paramSearch()) {
-			navigate(`/search/${encodeURI(searchInput())}`, { resolve: false })
+			navigate(`/search/${encodeURI(searchInput())}`, { resolve: false, replace: true }) // TODO make it only replace when comming from search
 		}
 
 		if (searchInput()) {
@@ -93,14 +95,15 @@ export const SearchPage: Component = () => {
 						<input id="search-input"
 							type='search'
 							autocomplete="off"
-							placeholder='search...'
+							placeholder='search here...'
 							value={searchInput()}
 							onClick={(e) => {
 								e.stopPropagation()
 							}}
-							onInput={(e) => {
-								clearTimeout(typingTimer)
-								typingTimer = setTimeout(stoppedTyping, doneTypingInterval)
+							onKeyPress={(e) => {
+								if (e.key == "Enter") {
+									stoppedTyping()
+								}
 							}}>
 
 						</input>
@@ -268,13 +271,13 @@ const HomePageStyle = styled("div")((props) => {
 			animationTimingFunction: "ease-in-out"
 		},
 
-		"@keyframes loading": {
-			"0%": {
-				rotate: "0deg"
-			},
-			"100%": {
-				rotate: "360deg"
-			}
-		}
+		// "@keyframes loading": {
+		// 	"0%": {
+		// 		rotate: "0deg"
+		// 	},
+		// 	"100%": {
+		// 		rotate: "360deg"
+		// 	}
+		// }
 	}
 })
