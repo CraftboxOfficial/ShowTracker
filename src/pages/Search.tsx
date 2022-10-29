@@ -4,6 +4,7 @@ import { SearchCard } from './search/SearchCard';
 import { BiRegularFilterAlt, BiRegularLoaderAlt, BiRegularSearchAlt } from 'solid-icons/bi';
 import { useTmdb } from '../components/TmdbProvider';
 import { useNavigate, useParams } from '@solidjs/router';
+import { Scroll } from './common/Scroll';
 
 export const SearchPage: Component = () => {
 
@@ -147,7 +148,7 @@ export const SearchPage: Component = () => {
 							<span>We couldn't find what you're looking for D:</span>
 						</div>
 					}>
-						<div id="cards">
+						<Scroll id="cards" scrollId="cards" options={{ scrollY: true, returnToStart: true }}>
 							<For each={searchResults()}>
 								{(card) => {
 									// if (card.media_type == "tv") {
@@ -159,7 +160,7 @@ export const SearchPage: Component = () => {
 									// }
 								}}
 							</For>
-						</div>
+						</Scroll>
 					</Show>
 				</Show>
 			</HomePageStyle>
@@ -179,8 +180,10 @@ const HomePageStyle = styled("div")((props) => {
 		color: props.theme?.main.text,
 
 		"#cards": {
+			display: "flex",
+			flexDirection: "column",
+
 			padding: "0 0.5em 12em 0.5em",
-			overflow: "auto",
 			zIndex: "0"
 		},
 
@@ -207,7 +210,7 @@ const HomePageStyle = styled("div")((props) => {
 			top: "-1px",
 			zIndex: "10",
 
-			padding: "0.5em",
+			padding: "1em 0.5em 0.5em 0.5em",
 		},
 
 		"#top-bar": {
@@ -225,6 +228,10 @@ const HomePageStyle = styled("div")((props) => {
 				border: "none",
 				color: props.theme?.main.text,
 				fontSize: "1.5em"
+			},
+
+			button: {
+				backgroundColor: "unset"
 			},
 
 			'input[type="search"]::-webkit-search-decoration': {
