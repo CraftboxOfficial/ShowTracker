@@ -61,7 +61,7 @@ export interface TMDBSearchMultiSearchPerson {
 export interface TMDBTvGetDetailsQuery {
 	tv_id: number,
 	language?: string
-} 
+}
 
 export interface TMDBTvGetDetails {
 	backdrop_path: string | null,
@@ -76,7 +76,7 @@ export interface TMDBTvGetDetails {
 	first_air_date: string,
 	genres: {
 		id: number,
-		name: string
+		name: "Action & Adventure" | "Comedy" | "Crime" | "Documentary" | "Drama" | "Kids" | "Mystery" | "News" | "Reality" | "Sci-Fi & Fantasy" | "Soap" | "Talk" | "War & Politics" | "Western" | "Animation"
 	}[],
 	homepage: string,
 	id: number,
@@ -135,7 +135,7 @@ export interface TMDBTvGetDetails {
 		iso_639_1: string,
 		name: string
 	}[],
-	status: string,
+	status: 'Returning Series' | 'Planned' | 'In Production' | 'Ended' | 'Canceled' | 'Pilot',
 	tagline: string,
 	type: string,
 	vote_average: number,
