@@ -15,7 +15,7 @@ export const ImageLoader: Component<{ data: { priority: number, query: imageLade
 	const tmdb = useTmdb()
 
 	const [ image, setImage ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
-	const [ imageLoading, setImageLoading ] = createSignal(false)
+	const [ imageLoading, setImageLoading ] = createSignal(true)
 
 	createEffect(async () => {
 		setImageLoading(true)
