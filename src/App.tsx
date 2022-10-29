@@ -4,7 +4,7 @@ import { Route, Routes, useLocation, useNavigate } from '@solidjs/router';
 import { StoreonProvider } from '@storeon/solidjs';
 import { DefaultTheme, styled, ThemeProvider } from 'solid-styled-components';
 import { CacheProvider } from './components/CacheProvider';
-import { NavBar } from './components/NavBar';
+import { NavBar } from './pages/common/NavBar';
 import { TmdbProvider } from './components/TmdbProvider';
 import { HomePage } from './pages/Home';
 import { SearchPage } from './pages/Search';
@@ -43,6 +43,7 @@ export const App: Component = () => {
 			text: "#FFFFFF",
 			main: "#2B2B2B"
 		},
+
 		card: {
 			main: "#383838",
 			accent: "#555555",
@@ -51,19 +52,52 @@ export const App: Component = () => {
 			outlineTop: [ "#55555540", "#555555FF" ],
 			outLineBottom: [ "#555555FF", "#55555540" ]
 		},
+
 		tv: {
 			main: "#3C4CDC",
 			highlight: "#B7BEFF"
 		},
+
 		movie: {
 			main: "#AA3B3B",
 			highlight: "#FFC9C9"
 		},
+
 		effects: {
 			accept: "#5CDC3C"
 		},
+
 		tags: {
 			fantasy: "#DC3C75"
+		},
+
+		status: {
+			airing: "#5CDC3C",
+			planned: "#9984EE",
+			pilot: "#7DC5E4",
+			inProduction: "#30A1E0",
+			ended: "#A66C4B",
+			canceled: "#CD5353",
+			unknown: "#A0A0A0"
+		},
+
+		genres: {
+			text: "#FFFFFF",
+			actionAndAdventure: "#80A56A",
+			comedy: "#4782DB",
+			crime: "#62471E",
+			documentary: "#3B3F9A",
+			drama: "#DC5353",
+			kids: "#58CD55",
+			mystery: "#5B3B74",
+			news: "#3170EB",
+			reality: "#62A599",
+			sciFiAndFantasy: "#A51247",
+			soap: "#A7B036",
+			talk: "#AD4747",
+			warAndPolitics: "#466490",
+			western: "#5F8EB0",
+			animation: "#DC3C75"
 		}
 	}
 
@@ -101,7 +135,7 @@ const AppStyle = styled("div")((props) => {
 			fontSize: "inherit",
 			padding: "0",
 			margin: "0",
-			backgroundColor: "unset",
+			// backgroundColor: "inherit",
 			border: "unset",
 		},
 
