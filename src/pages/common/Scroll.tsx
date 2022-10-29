@@ -5,7 +5,7 @@ export const Scroll: Component<{ children: JSXElement, id?: string, scrollId: st
 
 	let target: HTMLElement
 
-	// const [ pointerDown, setPointerDown ] = createSignal(false)
+	const [ pointerDown, setPointerDown ] = createSignal(false)
 	// const [ scrollY, setScrollY ] = createSignal(0)
 	// const [ scrollX, setScrollX ] = createSignal(0)
 
@@ -16,22 +16,19 @@ export const Scroll: Component<{ children: JSXElement, id?: string, scrollId: st
 		// @ts-expect-error
 		const path = e.path as EventTarget[] || e.composedPath()
 
+		if (pointerDown()) {
 
-		if (path.includes(target)) {
+			if (path.includes(target)) {
 
-			if (props.options.scrollY || false) {
-				target?.scrollBy({ top: -e.movementY })
-				// setScrollY(e.movementY)
+				if (props.options.scrollY || false) {
+					target?.scrollBy({ top: -e.movementY })
 
-				// if (e.movementY > 5 || e.movementY < -5) {
-				// 	console.log(e)
-				// }
-			}
+				}
 
-			if (props.options.scrollX || false) {
-				// target.scrollTo({ left: 0, top: 0, behavior: "smooth" })
-				target?.scrollBy({ left: -e.movementX })
-				// setScrollX(e.movementX)
+				if (props.options.scrollX || false) {
+					target?.scrollBy({ left: -e.movementX })
+
+				}
 			}
 		}
 	}
@@ -44,6 +41,12 @@ export const Scroll: Component<{ children: JSXElement, id?: string, scrollId: st
 		target = document.querySelector(`.${props.scrollId}-scroll`) as HTMLElement
 
 		window.addEventListener("pointermove", pointerMoveScroll)
+		window.addEventListener("pointerdown", (e) => setPointerDown(true))
+		window.addEventListener("pointerup", (e) => setPointerDown(false))
+
+		window.addEventListener("scroll", (e) => {
+			console.log(e)
+		})
 
 		if (props.options.returnToStart) {
 			window.addEventListener("change", scrollToTop)
@@ -52,6 +55,8 @@ export const Scroll: Component<{ children: JSXElement, id?: string, scrollId: st
 
 	onCleanup(() => {
 		window.removeEventListener("pointermove", pointerMoveScroll)
+		window.addEventListener("pointerdown", (e) => setPointerDown(true))
+		window.addEventListener("pointerup", (e) => setPointerDown(false))
 
 		if (props.options.returnToStart) {
 			window.removeEventListener("change", scrollToTop)
