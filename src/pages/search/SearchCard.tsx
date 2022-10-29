@@ -57,13 +57,19 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 
 		switch (props.card.media_type) {
 			case "tv": {
-				const date = props.card.first_air_date.split("-")
-				return `${monthNames[ parseInt(date[ 1 ]) ]} ${date[ 0 ]}`
+				if (props.card.first_air_date) {
+					const date = props.card.first_air_date.split("-")
+					return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
+				}
+				return "Unknown"
 			}
 
 			case "movie": {
-				const date = props.card.release_date.split("-")
-				return `${monthNames[ parseInt(date[ 1 ]) ]} ${date[ 0 ]}`
+				if (props.card.release_date) {
+					const date = props.card.release_date.split("-")
+					return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
+				}
+				return "Unknown"
 			}
 		}
 	}
