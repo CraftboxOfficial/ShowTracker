@@ -3,7 +3,7 @@ import { tmdbGetConfigurationData, tmdbGetConfigurationResponses, tmdbGetImagesD
 import localforage from 'localforage';
 import { useFirebaseApp } from "solid-firebase";
 import { Component, createContext, JSXElement, onCleanup, onMount, useContext } from 'solid-js';
-import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearch, TMDBTvGetDetails, TMDBTvGetDetailsQuery } from '../tmdb';
+import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearch, TMDBTvGetDetails, TMDBTvGetDetailsQuery, TMDBTvSeasonsGetDetailsQuery, TMDBTvSeasonsGetDetails } from '../tmdb';
 
 const TmdbContext = createContext()
 
@@ -27,6 +27,10 @@ interface TmdbContext {
 		query: TMDBTvGetDetailsQuery
 	}) => Promise<TMDBTvGetDetails>,
 
+	tmdbGetTvSeasonsDetails: (data: {
+		priority: number
+		query: TMDBTvSeasonsGetDetailsQuery
+	}) => Promise<TMDBTvSeasonsGetDetails>,
 	// tmdbGetMovieDetails: (data: {
 	// 	priority: number
 	// 	query: TMDBTvGetDetailsQuery
@@ -56,6 +60,10 @@ interface savedSearchQuery extends savedData {
 
 interface savedTvDetails extends savedData {
 	data: TMDBTvGetDetails
+}
+
+interface savedTvSeasonsDetails extends savedData {
+	data: TMDBTvSeasonsGetDetails
 }
 
 interface savedApiConfiguration extends savedData {
@@ -243,6 +251,50 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 					priority: data.priority,
 					data: response.data
 				} as savedTvDetails)
+
+				return response.data
+				// }
+			}
+
+			return await getDetail(data)
+		},
+
+		tmdbGetTvSeasonsDetails: async (data) => {
+			const call = httpsCallable<TMDBTvSeasonsGetDetailsQuery>(functions, "tmdbTvSeasonsGetDetails")
+
+			const detailsStore = localforage.createInstance({
+				name: DB_NAMES.DETAILS
+			})
+
+			async function getDetail(data: {
+				priority: number
+				query: TMDBTvSeasonsGetDetailsQuery
+			}) {
+
+
+				const detailsKey = JSON.stringify(data.query)
+
+				const retrivedDetails = await detailsStore.getItem(detailsKey) as savedTvSeasonsDetails | null
+
+				if (retrivedDetails) {
+					detailsStore.setItem(detailsKey, {
+						...retrivedDetails,
+						lastUsedOn: new Date(),
+						priority: data.priority
+					} as savedTvSeasonsDetails)
+
+					return retrivedDetails.data
+				}
+
+				// if (!retrivedDetails) {
+				const response = await call({ ...data.query }) as HttpsCallableResult<TMDBTvSeasonsGetDetails>
+
+				detailsStore.setItem(detailsKey, {
+					lastUsedOn: new Date(),
+					createdOn: new Date(),
+					priority: data.priority,
+					data: response.data
+				} as savedTvSeasonsDetails)
 
 				return response.data
 				// }
