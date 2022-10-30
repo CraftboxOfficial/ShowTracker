@@ -1,6 +1,6 @@
-import { Component, createEffect, createSignal } from 'solid-js';
+import { Component, createEffect, createSignal, lazy } from 'solid-js';
 
-import { Route, Routes, useLocation, useNavigate } from '@solidjs/router';
+import { Route, RouteDefinition, RouteProps, Routes, useLocation, useNavigate, useRoutes } from '@solidjs/router';
 import { StoreonProvider } from '@storeon/solidjs';
 import { DefaultTheme, styled, ThemeProvider } from 'solid-styled-components';
 import { CacheProvider } from './components/CacheProvider';
@@ -12,6 +12,8 @@ import { ShowsPage } from './pages/Shows';
 import { TvPage } from './pages/TvPage';
 import { store } from './State';
 import { MoviePage } from './pages/MoviePage';
+import { SeasonPage } from './pages/SeasonPage';
+
 
 export const App: Component = () => {
 
@@ -97,9 +99,64 @@ export const App: Component = () => {
 			talk: "#AD4747",
 			warAndPolitics: "#466490",
 			western: "#5F8EB0",
-			animation: "#DC3C75"
+			animation: "#DC3C75",
+			family: "#AF501A"
 		}
 	}
+
+	const routes: RouteDefinition[] = [
+		{
+			path: "/",
+			component: () => { navigate("/home", { resolve: false }); return (<></>) }
+		},
+		{
+			path: "/home",
+			component: HomePage
+		},
+		{
+			path: "/search",
+			component: SearchPage,
+			children: [
+				{
+					path: "/:searchString",
+					component: SearchPage
+				}
+			]
+		},
+		{
+			path: "/tv",
+			component: () => { navigate("/search", { resolve: false }); return (<></>) },
+			children: [
+				{
+					path: "/:tvId",
+					component: TvPage,
+					children: [
+						{
+							path: "/:seasonId",
+							component: SeasonPage
+						}
+					]
+				}
+			]
+		},
+		{
+			path: "/movie",
+			component: () => { navigate("/search", { resolve: false }); return (<></>) },
+			children: [
+				{
+					path: "/:movieId",
+					component: MoviePage
+				}
+			]
+		},
+		{
+			path: "/list",
+			component: ShowsPage
+		}
+	]
+
+
+	// const Routes = useRoutes(routes)
 
 	return (
 		<>
@@ -108,12 +165,25 @@ export const App: Component = () => {
 					<TmdbProvider>
 						{/* <CacheProvider> */}
 						<AppStyle>
+							{/* <Routes /> */}
 							<Routes>
 								<Route path="/home" component={HomePage} />
-								<Route path="/search" component={SearchPage} />
-								<Route path="/search/:searchString" component={SearchPage} />
-								<Route path="/tv" component={() => { navigate("/search", { resolve: false }); return <></> }} />
-								<Route path="/tv/:tvId" component={TvPage} />
+								<Route path="/search" >
+									<Route path="/" component={SearchPage} />
+									<Route path="/:searchString" >
+										<Route path="/" component={SearchPage} />
+									</Route>
+								</Route>
+
+								<Route path="/tv" >
+									<Route path="/" component={() => { navigate("/search", { resolve: false }); return <></> }} />
+									<Route path="/:tvId" >
+										<Route path="/" component={TvPage} />
+										<Route path="/:seasonId">
+											<Route path="/" component={SeasonPage} />
+										</Route>
+									</Route>
+								</Route>
 								<Route path="/list" component={ShowsPage} />
 								<Route path="/movie/:movieId" component={MoviePage} />
 							</Routes>
@@ -158,6 +228,7 @@ const AppStyle = styled("div")((props) => {
 		},
 
 
+		// height: "calc(100% + 10vh)",
 		height: "100%",
 		minHeight: "100%",
 		width: "100%",
