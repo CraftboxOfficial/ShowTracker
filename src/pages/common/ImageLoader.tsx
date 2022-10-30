@@ -10,7 +10,7 @@ interface imageLaderGetImage {
 	imageType: "backdrop" | "logo" | "poster" | "profile" | "still"
 }
 
-export const ImageLoader: Component<{ data: { priority: number, query: imageLaderGetImage }, class?: string }> = (props) => {
+export const ImageLoader: Component<{ data: { priority: number, query: imageLaderGetImage }, class?: string, hasLoadedSignal?: Setter<boolean> }> = (props) => {
 
 	const tmdb = useTmdb()
 
@@ -64,6 +64,10 @@ export const ImageLoader: Component<{ data: { priority: number, query: imageLade
 		}
 
 		setImageLoading(false)
+
+		if (props.hasLoadedSignal) {
+			props.hasLoadedSignal(true)
+		}
 	})
 
 	return (
@@ -96,11 +100,12 @@ const ImageLoaderStyle = styled("div")((props) => {
 		img: {
 			height: "inherit",
 			width: "inherit",
-			borderRadius: "inherit"
+			borderRadius: "inherit",
+			boxShadow: "inherit"
 		},
 
 		".image-loading": {
-			height: "100%",
+			height: "inherit",
 			display: "flex",
 			flexDirection: "column",
 			alignItems: "center",
@@ -108,7 +113,8 @@ const ImageLoaderStyle = styled("div")((props) => {
 		},
 
 		".no-image": {
-			height: "100%",
+			height: "inherit",
+			// width: "100%",
 			display: "flex",
 			flexDirection: "column",
 			alignItems: "center",
