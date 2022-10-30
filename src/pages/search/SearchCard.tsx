@@ -6,6 +6,7 @@ import { useTmdb } from '../../components/TmdbProvider';
 import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearchMovie, TMDBSearchMultiSearchTv } from '../../tmdb';
 import { BiRegularLoaderAlt } from 'solid-icons/bi';
 import { ImageLoader } from '../common/ImageLoader';
+import { getTextDate } from '../common/methods';
 
 export interface SearchCardTvI {
 	backdropPath: string,
@@ -52,27 +53,27 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 
 	const navigate = useNavigate()
 
-	function getTextDate() {
-		const monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
+	// function getTextDate() {
+	// 	const monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
 
-		switch (props.card.media_type) {
-			case "tv": {
-				if (props.card.first_air_date) {
-					const date = props.card.first_air_date.split("-")
-					return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
-				}
-				return "Unknown"
-			}
+	// 	switch (props.card.media_type) {
+	// 		case "tv": {
+	// 			if (props.card.first_air_date) {
+	// 				const date = props.card.first_air_date.split("-")
+	// 				return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
+	// 			}
+	// 			return "Unknown"
+	// 		}
 
-			case "movie": {
-				if (props.card.release_date) {
-					const date = props.card.release_date.split("-")
-					return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
-				}
-				return "Unknown"
-			}
-		}
-	}
+	// 		case "movie": {
+	// 			if (props.card.release_date) {
+	// 				const date = props.card.release_date.split("-")
+	// 				return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
+	// 			}
+	// 			return "Unknown"
+	// 		}
+	// 	}
+	// }
 
 	return (
 		<>
@@ -97,7 +98,7 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 					<hr />
 					<div class="show-info">
 						<MediaType type={props.card.media_type} />
-						<span class="air-date">{getTextDate()}</span>
+						<span class="air-date">{getTextDate(props.card.media_type == "tv" ? props.card.first_air_date : props.card.release_date)}</span>
 					</div>
 				</div>
 			</SearchCardStyle>
@@ -119,7 +120,7 @@ const SearchCardStyle = styled("div")((props) => {
 		zIndex: "inherit",
 
 		".show-poster": {
-			height: "100%",
+			height: "12em",
 			width: "8em",
 			minWidth: "8em",
 			borderRadius: "10px",
@@ -156,45 +157,6 @@ const SearchCardStyle = styled("div")((props) => {
 				backgroundColor: props.theme?.card.accent
 			}
 		},
-
-
-
-		// ".show-no-image": {
-		// 	height: "100%",
-		// 	width: "8em",
-		// 	borderRadius: "10px",
-
-		// 	backgroundColor: props.theme?.card.accent,
-
-		// 	display: "flex",
-		// 	alignItems: "center",
-		// 	justifyContent: "center",
-
-		// 	boxShadow: "8px 0 4px 0 #00000019",
-
-		// 	span: {
-		// 		fontSize: "1.1em",
-		// 		color: props.theme?.card.highlight2
-		// 	}
-		// },
-
-		// ".image-loading": {
-		// 	height: "100%",
-		// 	width: "100%",
-		// 	borderRadius: "10px",
-
-		// 	// backgroundColor: "red",
-		// 	boxShadow: "8px 0 4px 0 #00000019",
-
-		// 	display: "flex",
-		// 	alignItems: "center",
-		// 	justifyContent: "center",
-
-		// 	"#searching-ico": {
-		// 		height: "calc(0.1em * 36)",
-		// 		width: "calc(0.1em * 36)"
-		// 	}
-		// },
 
 		".show-info": {
 			display: "flex",
