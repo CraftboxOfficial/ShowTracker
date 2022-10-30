@@ -62,7 +62,8 @@ declare module "solid-styled-components" {
 			talk: string,
 			warAndPolitics: string,
 			western: string,
-			animation: string
+			animation: string,
+			family: string
 		}
 	}
 }
