@@ -86,6 +86,11 @@ export const GenrePill: Component<{ genre: TMDBTvGetDetails[ "genres" ][ 0 ][ "n
 			backgroundColor = theme.genres.animation
 			break
 		}
+		case ("Family"): {
+
+			backgroundColor = theme.genres.family
+			break
+		}
 		default: {
 
 			backgroundColor = "#000000"
