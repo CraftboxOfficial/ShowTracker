@@ -76,7 +76,7 @@ export interface TMDBTvGetDetails {
 	first_air_date: string,
 	genres: {
 		id: number,
-		name: "Action & Adventure" | "Comedy" | "Crime" | "Documentary" | "Drama" | "Kids" | "Mystery" | "News" | "Reality" | "Sci-Fi & Fantasy" | "Soap" | "Talk" | "War & Politics" | "Western" | "Animation"
+		name: "Action & Adventure" | "Comedy" | "Crime" | "Documentary" | "Drama" | "Kids" | "Mystery" | "News" | "Reality" | "Sci-Fi & Fantasy" | "Soap" | "Talk" | "War & Politics" | "Western" | "Animation" | "Family"
 	}[],
 	homepage: string,
 	id: number,
@@ -142,6 +142,12 @@ export interface TMDBTvGetDetails {
 	vote_count: number
 }
 
+export interface TMDBTvSeasonsGetDetailsQuery {
+	tv_id: number,
+	season_number: number,
+	language?: string
+}
+
 export interface TMDBTvSeasonsGetDetails {
 	_id: string,
 	air_date: string,
@@ -184,6 +190,7 @@ export interface TMDBTvSeasonsGetDetails {
 		vote_count: number
 	}[],
 	name: string,
+	overview: string,
 	id: number,
 	poster_path: string | null,
 	season_number: number
