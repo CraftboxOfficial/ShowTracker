@@ -2,7 +2,7 @@ import { useParams } from "@solidjs/router";
 import { BiRegularLoaderAlt } from "solid-icons/bi";
 import { Accessor, Component, createSignal, Setter, onMount, Show, createEffect } from 'solid-js';
 import { styled } from 'solid-styled-components';
-import { MediaType } from "../components/MediaType";
+import { MediaType } from "./common/MediaType";
 import { useTmdb } from '../components/TmdbProvider';
 import { TMDBConfigurationGetApiConfiguration, TMDBTvGetDetails } from '../tmdb';
 import { ImageLoader } from "./common/ImageLoader";
