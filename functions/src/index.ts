@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import fetch from 'node-fetch';
-import { TMDBConfigurationGetApiConfiguration, TMDBConfigurationGetCountries, TMDBConfigurationGetJobs, TMDBConfigurationGetLanguages, TMDBConfigurationGetPrimaryLanguages, TMDBConfigurationGetTimezones, TMDBTvEpisodesGetImages, TMDBTvGetDetailsQuery } from '../../src/tmdb.js';
+import { TMDBConfigurationGetApiConfiguration, TMDBConfigurationGetCountries, TMDBConfigurationGetJobs, TMDBConfigurationGetLanguages, TMDBConfigurationGetPrimaryLanguages, TMDBConfigurationGetTimezones, TMDBTvEpisodesGetImages, TMDBTvGetDetailsQuery, TMDBTvSeasonsGetDetailsQuery } from '../../src/tmdb.js';
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
@@ -39,12 +39,12 @@ export const tmdbTvGetDetails = functions
 	.https.onCall(async (data: TMDBTvGetDetailsQuery | TMDBTvGetDetailsQuery[], context) => {
 		if (Array.isArray(data)) {
 			const queries = data.map((v) => ({
-					apiKey: process.env.TMDB_API_KEY,
-					language: v.language || "en-US",
-					tvId: v.tv_id,
+				apiKey: process.env.TMDB_API_KEY,
+				language: v.language || "en-US",
+				tvId: v.tv_id,
 			}))
 
-			const results = queries.map( async (query) => {
+			const results = queries.map(async (query) => {
 				const url = `https://api.themoviedb.org/3/tv/${query.tvId}?api_key=${query.apiKey}&language=${query.language}`
 				return await (await fetch(url)).json()
 			})
@@ -212,7 +212,7 @@ export type tmdbGetImages = {
 // 		const blob = await (await fetch(url, { method: "GET" })).blob()
 // 		blob.arrayBuffer().then((v) => {
 // 			const a = String.fromCharCode(...new Uint8Array(v))
-			
+
 // 			retrivedImages.push(base64.encodeString(a))
 // 		})
 // 	}
@@ -222,3 +222,31 @@ export type tmdbGetImages = {
 // 	// return []
 // 	return retrivedImages
 // })
+
+export const tmdbTvSeasonsGetDetails = functions
+	.runWith({ secrets: [ "TMDB_API_KEY" ] })
+	.https.onCall(async (data: TMDBTvSeasonsGetDetailsQuery, context) => {
+		// if (Array.isArray(data)) {
+		// 	const queries = data.map((v) => ({
+		// 		apiKey: process.env.TMDB_API_KEY,
+		// 		language: v.language || "en-US",
+		// 		tvId: v.tv_id,
+		// 	}))
+
+		// 	const results = queries.map(async (query) => {
+		// 		const url = `https://api.themoviedb.org/3/tv/${query.tvId}?api_key=${query.apiKey}&language=${query.language}`
+		// 		return await (await fetch(url)).json()
+		// 	})
+
+		// 	return results
+		// }
+
+		const request = {
+			apiKey: process.env.TMDB_API_KEY,
+			language: data.language || "en-US",
+			tvId: data.tv_id,
+			seasonNumber: data.season_number
+		}
+		const url = `https://api.themoviedb.org/3/tv/${request.tvId}/season/${request.seasonNumber}?api_key=${request.apiKey}&language=${request.language}`
+		return await (await fetch(url)).json()
+	})
