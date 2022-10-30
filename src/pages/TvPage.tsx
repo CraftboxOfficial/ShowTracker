@@ -1,5 +1,5 @@
 import { useParams } from "@solidjs/router";
-import { BiRegularLoaderAlt } from "solid-icons/bi";
+import { BiRegularCaretDown, BiRegularLoaderAlt } from "solid-icons/bi";
 import { Accessor, Component, createSignal, Setter, onMount, Show, createEffect, For } from 'solid-js';
 import { styled, useTheme } from 'solid-styled-components';
 import { MediaType } from "../components/MediaType";
@@ -9,6 +9,9 @@ import { BackButton } from "./common/BackButton";
 import { ImageLoader } from "./common/ImageLoader";
 import { GenrePill } from "./common/GenrePill";
 import { Scroll } from "./common/Scroll";
+import { SeasonCard } from "./tvPage/seasonCard";
+import { getTextDate } from "./common/methods";
+import { Line } from "./common/Line";
 
 export const TvPage: Component = () => {
 
@@ -29,18 +32,6 @@ export const TvPage: Component = () => {
 
 		console.log(tvDetails())
 	})
-
-	function getTextDate() {
-		const monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
-
-		if (tvDetails()?.first_air_date) {
-			const date = tvDetails()?.first_air_date.split("-")
-			// @ts-expect-error
-			return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
-		}
-
-		return "Unknown"
-	}
 
 	const [ backdrop, setBackdrop ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
 	const [ backdropLoading, setBackdropLoading ] = createSignal(true)
@@ -111,7 +102,7 @@ export const TvPage: Component = () => {
 				}
 				return {
 					status: "Returning",
-					color: theme.status.airing
+					color: theme.status.inProduction
 				}
 			}
 			default: {
@@ -123,55 +114,20 @@ export const TvPage: Component = () => {
 		}
 	}
 
-	// window.onload = (e) => {
-	// 	const target = document.getElementById("show-genres")
-	// 	console.log(target)
-	// 	window.addEventListener("pointermove", (e) => {
-	// 		if (pressing()) {
-	// 			// console.log(e.movementX)
-	// 		}
-
-	// 		if (e.target == target) {
-	// 			console.log(e.movementX)
-	// 		}
-	// 	})
-	// }
-
-	// createEffect(() => {
-	// 	if (tvDetails()) {
-	// 		const target = document.getElementById("show-genres") as HTMLElement
-
-	// 		// console.log(target)
-
-	// 		window.addEventListener("pointermove", (e) => {
-	// 			// @ts-expect-error
-	// 			const path = e.path as EventTarget[] || e.composedPath()
-
-	// 			// if (pressing()) {
-	// 			// 	// console.log(e.movementX)
-	// 			// }
-
-	// 			// console.log(e)
-
-	// 			if (path.includes(target)) {
-	// 				// console.log(e.movementX)
-	// 				target?.scrollBy({ left: -e.movementX })
-	// 			}
-	// 		})
-	// 	}
-	// })
-
+	const [ hasPosterLoaded, setHasPosterLoaded ] = createSignal(false)
 
 	return (
 		<>
 			<TvPageStyle>
 				<BackButton />
-				<Show when={tvDetails()}>
+				<Show when={tvDetails() && (tvDetails()?.backdrop_path ? backdrop() : true)} fallback={(
+					<div id="show-loading">
+						<BiRegularLoaderAlt class="loading-ico" size={36} />
+					</div>
+				)}>
+					{/* <Scroll id="scrollable" scrollId="tv-page" options={{ scrollY: true }}> */}
+
 					<div id="tv-top" style={{ "background-image": `linear-gradient(${theme.main.main}00, ${theme.main.main}FF), url(${backdrop()})` }}>
-						{/* <Show when={!backdropLoading()}>
-							<div id="tv-backdrop" style={{ "background-image": `linear-gradient(${theme.main.main}00, ${theme.main.main}FF), url(${backdrop()})` }}>
-							</div>
-						</Show> */}
 						<div id="tv-poster">
 							<ImageLoader data={{
 								priority: 13,
@@ -181,7 +137,9 @@ export const TvPage: Component = () => {
 									imageType: "poster",
 									size: 3
 								}
-							}} />
+							}}
+								hasLoadedSignal={setHasPosterLoaded}
+							/>
 						</div>
 					</div>
 
@@ -198,25 +156,43 @@ export const TvPage: Component = () => {
 										<span class="show-count">{tvDetails()?.number_of_episodes}E</span>
 									</div>
 									<span id="air-status" style={{ "color": getTvStatus().color }}>{getTvStatus().status}</span>
-									<span id="air-date">{getTextDate()}</span>
+									<span id="air-date">{getTextDate(tvDetails()?.first_air_date)}</span>
 								</div>
-								<div id="show-genres">
-									<Scroll id="genres-pills" scrollId="genres" options={{ scrollX: true }}>
-										<For each={tvDetails()?.genres}>
-											{(genre) => (
-												<>
-													<GenrePill genre={genre.name} />
-												</>
-											)}
-										</For>
-									</Scroll>
-								</div>
+								{/* @ts-expect-error */}
+								<Show when={tvDetails()?.genres ? tvDetails()?.genres.length > 0 : false}>
+									<div id="show-genres">
+										<Scroll id="genres-pills" scrollId="genres" options={{ scrollX: true }}>
+											<For each={tvDetails()?.genres}>
+												{(genre) => (
+													<>
+														<GenrePill genre={genre.name} />
+													</>
+												)}
+											</For>
+										</Scroll>
+									</div>
+								</Show>
 							</Show>
 						</div>
 						<div id="tv-overview">
 							<span>{tvDetails()?.overview}</span>
 						</div>
+						<div id="show-more-line">
+							<Line class="show-line" />
+							{/* <BiRegularCaretDown id="show-more-ico" size={24} /> */}
+							{/* <Line class="show-line" /> */}
+						</div>
+						<div id="show-seasons">
+							<For each={tvDetails()?.seasons}>
+								{(season) => (
+									<>
+										<SeasonCard data={season} />
+									</>
+								)}
+							</For>
+						</div>
 					</div>
+					{/* </Scroll> */}
 
 				</Show>
 			</TvPageStyle>
@@ -227,6 +203,11 @@ export const TvPage: Component = () => {
 const TvPageStyle = styled("div")((props) => {
 	return {
 		height: "inherit",
+
+
+		// "#scrollable": {
+
+		// height: "inherit",
 		color: props.theme?.main.text,
 
 		// padding: "0 0.5em",
@@ -236,6 +217,10 @@ const TvPageStyle = styled("div")((props) => {
 		// alignItems: "strech",
 
 		overflowY: "auto",
+		// overflow: "hidden",
+
+		// paddingBottom: "100px",
+
 
 		"#tv-top": {
 			height: "28em",
@@ -251,13 +236,27 @@ const TvPageStyle = styled("div")((props) => {
 			"#tv-poster": {
 
 				height: "22em",
-				// width: "16em",
+				width: "15em",
 
 				margin: "3em 0",
 
+				borderRadius: "10px",
+				// boxShadow: "0 8px 10px 0 #00000019",
+
 				img: {
+					objectFit: "contain",
+					objectPosition: "center",
 					borderRadius: "10px",
-					boxShadow: "0 8px 10px 0 #00000019"
+					boxShadow: "0 8px 10px 0 #00000019",
+					// boxShadow: "0 8px 10px 0 #00000019"
+				},
+
+				".no-image": {
+					display: "none",
+					boxShadow: "none",
+					backgroundColor: "unset",
+					justifyContent: "flex-end",
+					// fontSize: "0.5em"
 				}
 			}
 		},
@@ -330,6 +329,7 @@ const TvPageStyle = styled("div")((props) => {
 					display: "flex",
 					flexDirection: "row",
 					alignItems: "center",
+					justifyContent: "center",
 
 					margin: "1em 0",
 
@@ -337,6 +337,7 @@ const TvPageStyle = styled("div")((props) => {
 						// margin: "0 1em",
 						display: "flex",
 						flexDirection: "row",
+
 
 						touchAction: "none",
 						overflowX: "hidden",
@@ -371,6 +372,68 @@ const TvPageStyle = styled("div")((props) => {
 				fontSize: "1.4em"
 				// }
 			}
+		},
+
+		"#show-more-line": {
+			display: "flex",
+			flexDirection: "row",
+
+			color: props.theme?.card.highlight,
+
+			justifyContent: "center",
+			alignItems: "center",
+
+			margin: "1em 1em",
+
+			".show-line": {
+				width: "100%",
+				// height: "0.4em",
+
+			},
+
+			"#show-more-ico": {
+				height: "calc(0.1em * 24)",
+				width: "calc(0.1em * 24)",
+
+			}
+		},
+
+		"#show-seasons": {
+			display: "flex",
+			flexDirection: "row",
+			justifyContent: "center",
+			flexWrap: "wrap",
+			// margin: "0 1em",
+			// padding: "10em 0"
+		},
+
+		"#show-loading": {
+			height: "inherit",
+			display: "flex",
+			flexDirection: "column",
+			alignItems: "center",
+			justifyContent: "center"
+		},
+
+		".loading-ico": {
+			height: "calc(0.1em * 36)",
+			width: "calc(0.1em * 36)",
+
+			animationName: "loading",
+			animationDuration: "1s",
+			animationIterationCount: "infinite",
+			animationTimingFunction: "ease-in-out"
+		},
+
+		"@keyframes loading": {
+			"0%": {
+				rotate: "0deg"
+			},
+			"100%": {
+				rotate: "360deg"
+			}
 		}
+		// },
 	}
+
 })
