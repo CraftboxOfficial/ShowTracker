@@ -62,7 +62,7 @@ export const SearchPage: Component = () => {
 				priority: 13
 			}).then((r) => {
 				setIsSearching(false)
-				setSearchResults(r?.results.filter((v) => v.media_type != 'person') || [])
+				setSearchResults((r?.results.filter((v) => v.media_type != 'person')).filter((v) => v.media_type != "movie") || [])
 			})
 
 		} else {
