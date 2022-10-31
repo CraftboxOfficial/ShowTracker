@@ -30,7 +30,7 @@ export const SeasonPage: Component = () => {
 			}
 		}))
 
-		console.log(seasonDetails())
+		// console.log(seasonDetails())
 	})
 
 	createEffect(async () => {
@@ -61,16 +61,13 @@ export const SeasonPage: Component = () => {
 
 	createEffect(() => {
 		tvDetails()?.seasons.forEach((d, i) => {
-			console.log(d.id)
-			console.log(seasonDetails()?.id)
 			if (d.id == seasonDetails()?.id) {
 				setSeasonIndex(i)
 			}
 		})
 
-		// @ts-expect-error
-		console.log(">> " + (tvDetails()?.seasons.length - 1))
-		console.log("-> " + seasonIndex())
+		// console.log(">> " + (tvDetails()?.seasons.length - 1))
+		// console.log("-> " + seasonIndex())
 	})
 	// function getSeasonIndex() {
 	// 	let index: number | undefined = undefined
@@ -100,12 +97,6 @@ export const SeasonPage: Component = () => {
 					<div id="season-content">
 						<div id="season-card">
 							<div id="season-poster">
-								<Show when={seasonIndex() > 0}>
-									<BiRegularLeftArrow size={24} onClick={(e) => {
-										navigate(`/tv/${params.tvId}/${seasonIndex() - 1}`, { replace: true })
-										// location.reload()
-									}} />
-								</Show>
 								<ImageLoader data={{
 									priority: 13,
 									query: {
@@ -115,20 +106,37 @@ export const SeasonPage: Component = () => {
 										size: 1
 									}
 								}} />
-								{/* @ts-expect-error */}
-								<Show when={seasonIndex() < (tvDetails()?.seasons.length - 1)}>
-									<BiRegularRightArrow size={24} onClick={(e) => {
-										console.log(params.tvId)
-										navigate(`/tv/${params.tvId}/${seasonIndex() + 1}`, { replace: true })
-										// location.reload()
-									}} />
-								</Show>
 							</div>
 							<div id="season-card-content">
-								<div id="season-title">
-									<span>{seasonDetails()?.name}</span>
+								<div id="season-changer">
+									<Show when={seasonIndex() > 0} fallback={
+										<>
+											<div class="change-arrow"></div>
+										</>
+									}>
+										<BiRegularLeftArrow class="change-arrow" size={24} onClick={(e) => {
+											// @ts-expect-error
+											navigate(`/tv/${params.tvId}/${seasonDetails()?.season_number - 1}`, { replace: true })
+											// location.reload()
+										}} />
+									</Show>
+									<div id="season-title">
+										<span>{seasonDetails()?.name}</span>
+									</div>
+									{/* @ts-expect-error */}
+									<Show when={seasonIndex() < (tvDetails()?.seasons.length - 1)} fallback={
+										<>
+											<div class="change-arrow"></div>
+										</>
+									}>
+										<BiRegularRightArrow class="change-arrow" size={24} onClick={(e) => {
+											// @ts-expect-error
+											navigate(`/tv/${params.tvId}/${seasonDetails()?.season_number + 1}`, { replace: true })
+											// location.reload()
+										}} />
+									</Show>
 								</div>
-								<Line />
+								<Line id="season-card-line" />
 								<div id="season-info">
 									<span id="season-count">{seasonDetails()?.episodes.length}E</span>
 									<span id="season-air-date">{getTextDate(seasonDetails()?.air_date)}</span>
@@ -139,7 +147,7 @@ export const SeasonPage: Component = () => {
 							<span>{seasonDetails()?.overview}</span>
 						</div>
 					</div>
-					<Line />
+					<Line id="season-line" />
 					<For each={seasonDetails()?.episodes}>
 						{(episode) => (
 							<>
@@ -160,8 +168,90 @@ const SeasonStyle = styled("div")((props) => {
 
 		padding: "0 0.5em",
 
-		"#season-card": {
+		paddingTop: "7em",
 
+		// margin: "0 1em",
+
+		overflowY: "auto",
+
+		"#season-card": {
+			display: "flex",
+			flexDirection: "row",
+
+			height: "12em",
+
+			borderRadius: "10px",
+			backgroundColor: props.theme?.card.main,
+
+			"#season-poster": {
+				borderRadius: "10px",
+				boxShadow: "8px 0 4px 0 #00000019",
+				height: "100%",
+				width: "8em"
+			},
+
+			"#season-card-content": {
+				display: "flex",
+				flexDirection: "column",
+
+				width: "100%",
+
+				justifyContent: "center",
+
+				"#season-changer": {
+					display: "flex",
+					flexDirection: "row",
+					justifyContent: "space-evenly",
+
+					color: props.theme?.card.highlight,
+
+					".change-arrow": {
+						height: "calc(0.1em * 24)",
+						width: "calc(0.1em * 24)",
+
+					},
+
+					"#season-title": {
+						fontSize: "2em",
+						color: props.theme?.main.text
+					}
+				},
+
+				"#season-card-line": {
+					width: "calc(100% - 4em)",
+					margin: "1em 2em"
+				},
+
+				"#season-info": {
+					display: "flex",
+					flexDirection: "row",
+
+					margin: "0 3em",
+
+					justifyContent: "space-between",
+
+					"#season-count": {
+						color: props.theme?.tv.highlight,
+						fontSize: "1.2em",
+						fontWeight: "bolder"
+					},
+
+					"#season-air-date": {
+						color: props.theme?.card.highlight,
+						fontSize: "1.2em",
+						fontWeight: "bolder"
+					}
+				}
+			}
+		},
+
+		"#season-overview": {
+			margin: "1em 1em",
+			fontSize: "1.2em"
+		},
+
+		"#season-line": {
+			margin: "1em 0.5em"
 		},
 
 		"#season-loading": {
