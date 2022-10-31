@@ -30,7 +30,7 @@ export const TvPage: Component = () => {
 			}
 		}))
 
-		console.log(tvDetails())
+		// console.log(tvDetails())
 	})
 
 	const [ backdrop, setBackdrop ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
@@ -383,7 +383,7 @@ const TvPageStyle = styled("div")((props) => {
 			justifyContent: "center",
 			alignItems: "center",
 
-			margin: "1em 1em",
+			margin: "0.5em 1em",
 
 			".show-line": {
 				width: "100%",
