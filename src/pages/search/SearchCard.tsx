@@ -4,9 +4,10 @@ import { styled } from 'solid-styled-components';
 import { MediaType } from '../common/MediaType';
 import { useTmdb } from '../../components/TmdbProvider';
 import { TMDBConfigurationGetApiConfiguration, TMDBSearchMultiSearchMovie, TMDBSearchMultiSearchTv } from '../../tmdb';
-import { BiRegularLoaderAlt } from 'solid-icons/bi';
+import { BiRegularLoaderAlt, BiRegularStar } from 'solid-icons/bi';
 import { ImageLoader } from '../common/ImageLoader';
-import { getTextDate } from '../common/methods';
+import { bigNumberShortener, getTextDate } from '../common/methods';
+import { Line } from '../common/Line';
 
 export interface SearchCardTvI {
 	backdropPath: string,
@@ -75,6 +76,8 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 	// 	}
 	// }
 
+	// console.log(props.card)
+
 	return (
 		<>
 			<SearchCardStyle
@@ -95,10 +98,18 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 
 				<div class="show-content" >
 					<span class="show-title">{props.card.media_type == "tv" ? props.card.name : props.card.title}</span>
-					<hr />
-					<div class="show-info">
-						<MediaType type={props.card.media_type} />
-						<span class="air-date">{getTextDate(props.card.media_type == "tv" ? props.card.first_air_date : props.card.release_date)}</span>
+					<Line class="show-content-line" />
+					<div class="show-content-bottom">
+						<div class="show-info">
+							<MediaType type={props.card.media_type} />
+							<span class="air-date">{getTextDate(props.card.media_type == "tv" ? props.card.first_air_date : props.card.release_date)}</span>
+						</div>
+						<div class="show-stats">
+							<div class="show-vote">
+								<BiRegularStar class="show-vote-ico" size={16} />
+								<span class="show-vote-text">{props.card.vote_average} / {bigNumberShortener(props.card.vote_count)}</span>
+							</div>
+						</div>
 					</div>
 				</div>
 			</SearchCardStyle>
@@ -143,19 +154,67 @@ const SearchCardStyle = styled("div")((props) => {
 
 		".show-content": {
 			width: "100%",
-			padding: "0.8em 1.8em",
+			padding: "1.4em 1.8em",
+			display: "flex",
+			flexDirection: "column",
 
 			".show-title": {
 				fontSize: "1.4em",
 				color: props.theme?.main.text
 			},
 
-			hr: {
-				height: "0.1em",
-				// borderWidth: "1px",
-				border: "none",
-				backgroundColor: props.theme?.card.accent
+			".show-content-line": {
+				margin: "0.8em 0"
+			},
+
+			// hr: {
+			// 	height: "0.1em",
+			// 	// borderWidth: "1px",
+			// 	border: "none",
+			// 	backgroundColor: props.theme?.card.accent
+			// },
+
+			".show-content-bottom": {
+				display: "flex",
+				flexDirection: "column",
+				height: "100%",
+				justifyContent: "space-between",
+
+				padding: "0 1em",
+
+				// ".show-info": {
+				// 	padding: "0 1em"
+				// },
+
+				".show-stats": {
+					// justifySelf: "flex-end",
+					// height: "1em",
+					// marginTop: "1em",
+					".show-vote": {
+						display: "flex",
+						flexDirection: "row",
+						alignItems: "center",
+						// textAlign: "center",
+
+						fontSize: "1.1em",
+
+						color: props.theme?.card.highlight,
+						fontWeight: "bolder",
+
+						".show-vote-ico": {
+							height: "calc(0.1em * 16)",
+							width: "calc(0.1em * 16)",
+						},
+
+						".show-vote-text": {
+							height: "1em",
+							marginLeft: "0.5em"
+						}
+						// textAlign: "center"
+					}
+				}
 			}
+
 		},
 
 		".show-info": {
