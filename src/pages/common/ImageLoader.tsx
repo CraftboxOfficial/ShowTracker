@@ -93,11 +93,12 @@ export const ImageLoader: Component<{ data: { priority: number, query: imageLade
 
 const ImageLoaderStyle = styled("div")((props) => {
 	return {
-		height: "inherit",
+		height: "100%",
 		width: "inherit",
 		borderRadius: "inherit",
 
 		img: {
+			display: "block",
 			height: "inherit",
 			width: "inherit",
 			borderRadius: "inherit",
