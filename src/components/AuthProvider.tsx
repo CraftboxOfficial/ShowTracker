@@ -13,7 +13,9 @@ interface AuthContext {
 
 	signIn: {
 		withEmailAndPassword: (email: string, password: string) => void
-	}
+	},
+
+	user: User
 }
 
 export const AuthProvider: Component<{ children: JSXElement }> = (props) => {
@@ -29,14 +31,14 @@ export const AuthProvider: Component<{ children: JSXElement }> = (props) => {
 				signInAnonymously(auth)
 					.then((userCred) => {
 						console.log("signed in anonymously")
-						console.log(userCred)
+						// console.log(userCred)
 					})
 					.catch((err) => {
 						console.warn("Error when signing in anonymously" + err)
 					})
 			} else {
 				console.log("already signed in")
-				console.log(auth.currentUser)
+				// console.log(auth.currentUser)
 			}
 		}
 	})
@@ -68,13 +70,15 @@ export const AuthProvider: Component<{ children: JSXElement }> = (props) => {
 			withEmailAndPassword(email, password) {
 				signInWithEmailAndPassword(auth, email, password)
 					.then((UserCredentials) => {
-						console.log(UserCredentials)
+						// console.log(UserCredentials)
 					})
 					.catch((err) => {
 						console.warn("Error when signing in with email and password" + err)
 					})
 			},
-		}
+		},
+
+		user: auth.currentUser as User
 	}
 
 	return (

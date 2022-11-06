@@ -11,19 +11,68 @@ interface DBUser {
 	trackedShows?: CollectionGroup<TrackedShow>
 }
 
+interface SetTrackedShow {
+	addedOn?: Timestamp
+	lastUpdatedOn?: Timestamp
+	tags?: string[]
+	notes?: Note[]
+	watchthroughs?: number
+	favorite?: boolean
+}
+
 interface TrackedShow {
 	addedOn: Timestamp
 	lastUpdatedOn: Timestamp
 	tags: string[]
-	notes?: CollectionGroup<Note>
+	notes: Note[]
 	watchthroughs: number
 	favorite: boolean
 }
 
-interface TrackList {
-
+interface SetTrackList {
+	name?: string
+	description?: string
+	cover?: Blob | null
+	createdOn?: Timestamp
+	lastUpdatedOn?: Timestamp
+	tags?: string[]
+	notes?: Note[]
+	favorite?: boolean
 }
 
+interface TrackList {
+	name: string
+	description: string
+	cover: Blob | null
+	createdOn: Timestamp
+	lastUpdatedOn: Timestamp
+	tags: string[]
+	notes: Note[]
+	favorite: boolean
+}
+
+interface DBSetShow {
+	addedOn?: Timestamp
+	lastUpdatedOn?: Timestamp
+	tmdbId?: number
+	watchStatus?: Status[]
+	localWatchthrough?: number
+	notes?: Note[]
+}
+
+interface DBShow {
+	addedOn: Timestamp
+	lastUpdatedOn: Timestamp
+	tmdbId: number
+	watchStatus: Status[]
+	localWatchthrough: number
+	notes: Note[]
+}
+
+interface Status {
+	type: "toWatch" | "watching" | "completed" | "onHold" | "dropped"
+	setOn: Timestamp
+}
 interface Note {
 	title: string
 	description: string
