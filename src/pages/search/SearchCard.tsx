@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@solidjs/router';
-import { Accessor, Component, createEffect, createSignal, Setter, Show } from 'solid-js';
+import { Accessor, Component, createEffect, createSignal, JSX, Setter, Show, onMount } from 'solid-js';
 import { styled } from 'solid-styled-components';
 import { MediaType } from '../common/MediaType';
 import { useTmdb } from '../../components/TmdbProvider';
@@ -8,6 +8,11 @@ import { BiRegularLoaderAlt, BiRegularStar } from 'solid-icons/bi';
 import { ImageLoader } from '../common/ImageLoader';
 import { bigNumberShortener, getTextDate } from '../common/methods';
 import { Line } from '../common/Line';
+import { useFirebaseApp, useAuth } from 'solid-firebase';
+import { doc, DocumentSnapshot, getDoc, getFirestore, onSnapshot, setDoc, Timestamp } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { TrackedShow } from 'src/db';
+import { useFirestore } from '../../components/FirestoreProvider';
 
 export interface SearchCardTvI {
 	backdropPath: string,
@@ -50,69 +55,108 @@ interface SearchCard extends HTMLDivElement {
 }
 export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearchMultiSearchMovie), class?: string }> = (props) => {
 
+	const app = useFirebaseApp()
+	const db = getFirestore(app)
+	const auth = getAuth()
+	const authState = useAuth(auth)
+
+	const fireDb = useFirestore()
 	const tmdb = useTmdb()
 
 	const navigate = useNavigate()
 
-	// function getTextDate() {
-	// 	const monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
+	const [ isFav, setIsFav ] = createSignal(false)
+	const [ loaded, setLoaded ] = createSignal(false)
 
-	// 	switch (props.card.media_type) {
-	// 		case "tv": {
-	// 			if (props.card.first_air_date) {
-	// 				const date = props.card.first_air_date.split("-")
-	// 				return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
-	// 			}
-	// 			return "Unknown"
-	// 		}
+	createEffect(() => {
+		// console.log(authState.data)
+		if (authState.data) {
+			const trackedShowRef = fireDb.getTrackedShowRef(props.card.id)
 
-	// 		case "movie": {
-	// 			if (props.card.release_date) {
-	// 				const date = props.card.release_date.split("-")
-	// 				return `${monthNames[ parseInt(date[ 1 ]) - 1 ]} ${date[ 0 ]}`
-	// 			}
-	// 			return "Unknown"
-	// 		}
-	// 	}
-	// }
+			const unsub = onSnapshot(trackedShowRef, (doc) => {
+				console.log(doc.id + " Fav state: " + doc.data()?.favorite)
+				setIsFav(doc.data()?.favorite || false)
+			})
 
-	// console.log(props.card)
+			setLoaded(true)
+		}
+	})
+
+
+	const favButton: JSX.EventHandlerUnion<HTMLButtonElement, MouseEvent> = async (e) => {
+		e.stopPropagation()
+
+		// console.log(useAuth(auth))
+		// const trackedShowRef = doc(db, "users", authState.data.uid, "trackedShows", props.card.id.toString())
+		const trackedShowRef = fireDb.getTrackedShowRef(props.card.id)
+
+		const trackedShowSnap = await getDoc(trackedShowRef)
+
+		// console.log(trackedShowSnap)
+		if (!trackedShowSnap.exists()) {
+			console.log("doc doesn't exist; creating one")
+			setDoc(trackedShowRef, {
+				addedOn: Timestamp.fromDate(new Date()),
+				favorite: true,
+				lastUpdatedOn: Timestamp.fromDate(new Date()),
+				tags: [],
+				watchthroughs: 0
+			} as TrackedShow)
+
+		} else {
+			if (trackedShowSnap.data().favorite) {
+				console.log("set fav to false")
+				setDoc(trackedShowRef, {
+					favorite: false
+				} as TrackedShow, { merge: true })
+
+			} else {
+				console.log("set fav to true")
+				setDoc(trackedShowRef, {
+					favorite: true
+				} as TrackedShow, { merge: true })
+			}
+		}
+	}
 
 	return (
 		<>
-			<SearchCardStyle
-				class={props.class}
-				onClick={(e) => {
-					navigate(`${props.card.media_type}/${props.card?.id}`, { resolve: false })
-				}}>
-				<div class="show-poster">
-					<ImageLoader class="show-image" data={{
-						priority: 13,
-						query: {
-							path: props.card?.poster_path,
-							imageType: "poster",
-							size: 1
-						}
-					}} />
-				</div>
+			<Show when={loaded()}>
+				<SearchCardStyle
+					class={props.class}
+					onClick={(e) => {
+						navigate(`${props.card.media_type}/${props.card?.id}`, { resolve: false })
+					}}>
+					<div class="show-poster">
+						<ImageLoader class="show-image" data={{
+							priority: 13,
+							query: {
+								path: props.card?.poster_path,
+								imageType: "poster",
+								size: 1
+							}
+						}} />
+					</div>
 
-				<div class="show-content" >
-					<span class="show-title">{props.card.media_type == "tv" ? props.card.name : props.card.title}</span>
-					<Line class="show-content-line" />
-					<div class="show-content-bottom">
-						<div class="show-info">
-							<MediaType type={props.card.media_type} />
-							<span class="air-date">{getTextDate(props.card.media_type == "tv" ? props.card.first_air_date : props.card.release_date)}</span>
-						</div>
-						<div class="show-stats">
-							<div class="show-vote">
-								<BiRegularStar class="show-vote-ico" size={16} />
-								<span class="show-vote-text">{props.card.vote_average} / {bigNumberShortener(props.card.vote_count)}</span>
+					<div class="show-content" >
+						<span class="show-title">{props.card.media_type == "tv" ? props.card.name : props.card.title}</span>
+						<Line class="show-content-line" />
+						<div class="show-content-bottom">
+							<div class="show-info">
+								<MediaType type={props.card.media_type} />
+								<span class="air-date">{getTextDate(props.card.media_type == "tv" ? props.card.first_air_date : props.card.release_date)}</span>
+							</div>
+							<div class="show-stats">
+								<div class="show-vote">
+									<BiRegularStar class="show-vote-ico" size={16} />
+									<span class="show-vote-text">{props.card.vote_average} / {bigNumberShortener(props.card.vote_count)}</span>
+								</div>
+								<button onClick={favButton}>Fav {isFav() ? "yes" : "no"}</button>
 							</div>
 						</div>
 					</div>
-				</div>
-			</SearchCardStyle>
+				</SearchCardStyle>
+			</Show>
 		</>
 	)
 }
