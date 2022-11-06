@@ -15,6 +15,8 @@ import { MoviePage } from './pages/MoviePage';
 import { SeasonPage } from './pages/SeasonPage';
 import { SignInPage } from './pages/signing/SignInPage';
 import { SignUpPage } from './pages/signing/SignUpPage';
+import { EditTrackList } from './pages/shows/EditTrackList';
+import { AddToTrackList } from './pages/shows/AddToTrackList';
 
 
 export const App: Component = () => {
@@ -197,6 +199,9 @@ export const App: Component = () => {
 
 								<Route path="/list" >
 									<Route path="/" component={ShowsPage} />
+									<Route path="/add-list" component={EditTrackList} />
+									<Route path="/edit-list" component={EditTrackList} />
+									<Route path="/add-to" component={AddToTrackList} />
 								</Route>
 
 								<Route path="/movie/:movieId" component={MoviePage} />
