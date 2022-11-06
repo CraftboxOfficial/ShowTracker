@@ -71,10 +71,9 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 	createEffect(() => {
 		// console.log(authState.data)
 		if (authState.data) {
-			const trackedShowRef = fireDb.getTrackedShowRef(props.card.id)
+			const trackedShowRef = fireDb.trackedShow(props.card.id).getRef()
 
 			const unsub = onSnapshot(trackedShowRef, (doc) => {
-				console.log(doc.id + " Fav state: " + doc.data()?.favorite)
 				setIsFav(doc.data()?.favorite || false)
 			})
 
@@ -86,36 +85,16 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 	const favButton: JSX.EventHandlerUnion<HTMLButtonElement, MouseEvent> = async (e) => {
 		e.stopPropagation()
 
-		// console.log(useAuth(auth))
-		// const trackedShowRef = doc(db, "users", authState.data.uid, "trackedShows", props.card.id.toString())
-		const trackedShowRef = fireDb.getTrackedShowRef(props.card.id)
+		const trackedShow = fireDb.trackedShow(props.card.id)
 
-		const trackedShowSnap = await getDoc(trackedShowRef)
-
-		// console.log(trackedShowSnap)
-		if (!trackedShowSnap.exists()) {
-			console.log("doc doesn't exist; creating one")
-			setDoc(trackedShowRef, {
-				addedOn: Timestamp.fromDate(new Date()),
-				favorite: true,
-				lastUpdatedOn: Timestamp.fromDate(new Date()),
-				tags: [],
-				watchthroughs: 0
-			} as TrackedShow)
-
+		if ((await trackedShow.getSnap()).data()?.favorite) {
+			trackedShow.updateDoc({
+				favorite: false
+			})
 		} else {
-			if (trackedShowSnap.data().favorite) {
-				console.log("set fav to false")
-				setDoc(trackedShowRef, {
-					favorite: false
-				} as TrackedShow, { merge: true })
-
-			} else {
-				console.log("set fav to true")
-				setDoc(trackedShowRef, {
-					favorite: true
-				} as TrackedShow, { merge: true })
-			}
+			trackedShow.updateDoc({
+				favorite: true
+			})
 		}
 	}
 
@@ -152,6 +131,10 @@ export const SearchCard: Component<{ card: (TMDBSearchMultiSearchTv | TMDBSearch
 									<span class="show-vote-text">{props.card.vote_average} / {bigNumberShortener(props.card.vote_count)}</span>
 								</div>
 								<button onClick={favButton}>Fav {isFav() ? "yes" : "no"}</button>
+								<button onClick={(e) => {
+									e.stopPropagation()
+									navigate("/list/add-to", { state: { tmdbId: props.card?.id } })
+								}}>Add to Track List</button>
 							</div>
 						</div>
 					</div>
