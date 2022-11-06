@@ -13,6 +13,8 @@ import { TvPage } from './pages/TvPage';
 import { store } from './State';
 import { MoviePage } from './pages/MoviePage';
 import { SeasonPage } from './pages/SeasonPage';
+import { SignInPage } from './pages/signing/SignInPage';
+import { SignUpPage } from './pages/signing/SignUpPage';
 
 
 export const App: Component = () => {
@@ -167,7 +169,15 @@ export const App: Component = () => {
 						<AppStyle>
 							{/* <Routes /> */}
 							<Routes>
+
+								<Route path="/account">
+									<Route path="/" component={() => { navigate("/home", { resolve: false }); return <></> }} />
+									<Route path="/sign-in" component={SignInPage} />
+									<Route path="/sign-up" component={SignUpPage} />
+								</Route>
+
 								<Route path="/home" component={HomePage} />
+
 								<Route path="/search" >
 									<Route path="/" component={SearchPage} />
 									<Route path="/:searchString" >
@@ -184,8 +194,13 @@ export const App: Component = () => {
 										</Route>
 									</Route>
 								</Route>
-								<Route path="/list" component={ShowsPage} />
+
+								<Route path="/list" >
+									<Route path="/" component={ShowsPage} />
+								</Route>
+
 								<Route path="/movie/:movieId" component={MoviePage} />
+
 							</Routes>
 							<NavBar selectedPage={currentPage} />
 						</AppStyle>
