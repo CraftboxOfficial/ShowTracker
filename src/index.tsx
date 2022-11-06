@@ -11,6 +11,9 @@ import { connectFunctionsEmulator, Functions, getFunctions, httpsCallable } from
 import { TMDBMultiSearchQuery } from 'functions/src';
 import { FirebaseProvider } from 'solid-firebase';
 import { App } from './App';
+import { FirebaseConfigurator } from './components/FirebaseConfigurator';
+import { FirestoreProvider } from './components/FirestoreProvider';
+import { AuthProvider } from './components/AuthProvider';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -25,6 +28,9 @@ const firebaseConfig: FirebaseOptions = {
 	appId: "1:618962731937:web:fd650b88c35afcc49101e0",
 	measurementId: "G-H6Q86GJ6QY"
 };
+
+// @ts-expect-error
+self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
 
 // Initialize Firebase
 // const app = initializeApp(firebaseConfig);
@@ -44,7 +50,12 @@ render(() => {
 		<>
 			<Router>
 				<FirebaseProvider config={firebaseConfig}>
-					<App />
+					<FirebaseConfigurator />
+					<AuthProvider>
+						<FirestoreProvider>
+							<App />
+						</FirestoreProvider>
+					</AuthProvider>
 				</FirebaseProvider>
 			</Router>
 		</>
