@@ -156,7 +156,7 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				searchQueryStore.setItem(queryKey, {
 					...retrivedQuery,
 					lastUsedOn: new Date(),
-					priority: data.priority
+					priority: data.priority > retrivedQuery.priority ? retrivedQuery.priority : data.priority
 				} as savedSearchQuery)
 
 				return retrivedQuery.data
@@ -234,7 +234,7 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				imageStore.setItem(imageKey, {
 					...retrivedImage,
 					lastUsedOn: new Date(),
-					priority: data.priority
+					priority: data.priority > retrivedImage.priority ? retrivedImage.priority : data.priority
 				} as savedImage)
 
 				return retrivedImage.blob
@@ -275,7 +275,7 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				detailsStore.setItem(detailsKey, {
 					...retrivedDetails,
 					lastUsedOn: new Date(),
-					priority: data.priority
+					priority: data.priority > retrivedDetails.priority ? retrivedDetails.priority : data.priority
 				} as savedTvDetails)
 
 				return retrivedDetails.data
@@ -315,7 +315,7 @@ export const TmdbProvider: Component<{ children: JSXElement }> = (props) => {
 				detailsStore.setItem(detailsKey, {
 					...retrivedDetails,
 					lastUsedOn: new Date(),
-					priority: data.priority
+					priority: data.priority > retrivedDetails.priority ? retrivedDetails.priority : data.priority
 				} as savedTvSeasonsDetails)
 
 				return retrivedDetails.data
