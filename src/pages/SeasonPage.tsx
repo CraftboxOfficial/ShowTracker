@@ -19,7 +19,7 @@ export const SeasonPage: Component = () => {
 
 	const pathname = createMemo(() => location.pathname)
 
-	const [ seasonDetails, setSeasonDetails ]: [ Accessor<TMDBTvSeasonsGetDetails | undefined>, Setter<TMDBTvSeasonsGetDetails | undefined> ] = createSignal()
+	const [ seasonDetails, setSeasonDetails ] = createSignal<TMDBTvSeasonsGetDetails | undefined>()
 
 	onMount(async () => {
 		setSeasonDetails(await tmdb.tmdbGetTvSeasonsDetails({
@@ -34,7 +34,9 @@ export const SeasonPage: Component = () => {
 	})
 
 	createEffect(async () => {
+		// when path changes this runs this effect
 		pathname()
+
 		setSeasonDetails(undefined)
 		setSeasonDetails(await tmdb.tmdbGetTvSeasonsDetails({
 			priority: 13,
@@ -45,7 +47,7 @@ export const SeasonPage: Component = () => {
 		}))
 	})
 
-	const [ tvDetails, setTvDetails ]: [ Accessor<TMDBTvGetDetails | undefined>, Setter<TMDBTvGetDetails | undefined> ] = createSignal()
+	const [ tvDetails, setTvDetails ] = createSignal<TMDBTvGetDetails | undefined>()
 
 	onMount(async () => {
 
@@ -66,20 +68,8 @@ export const SeasonPage: Component = () => {
 			}
 		})
 
-		// console.log(">> " + (tvDetails()?.seasons.length - 1))
-		// console.log("-> " + seasonIndex())
 	})
-	// function getSeasonIndex() {
-	// 	let index: number | undefined = undefined
 
-	// 	tvDetails()?.seasons.forEach((d, i) => {
-	// 		if (d.id == seasonDetails()?.id) {
-	// 			index = i
-	// 		}
-	// 	})
-
-	// 	return index
-	// }
 
 
 	return (

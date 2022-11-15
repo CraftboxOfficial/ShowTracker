@@ -12,7 +12,7 @@ export const AddToTrackList: Component<{}> = (props) => {
 	const location = useLocation<{ tmdbId: number }>()
 
 	const tmdbId = location.state?.tmdbId
-	console.log(tmdbId)
+	// console.log(tmdbId)
 
 	const [ getTrackLists, setTrackLists ] = createSignal<QueryDocumentSnapshot<TrackList>[]>([])
 
@@ -45,7 +45,7 @@ export const AddToTrackList: Component<{}> = (props) => {
 					})
 				}
 
-				console.log(e.currentTarget)
+				// console.log(e.currentTarget)
 			}}>
 				<For each={getTrackLists()}>
 					{(trackList) => (

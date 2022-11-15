@@ -19,21 +19,19 @@ export const TvPage: Component = () => {
 	const params = useParams()
 	const theme = useTheme()
 
-	const [ tvDetails, setTvDetails ]: [ Accessor<TMDBTvGetDetails | undefined>, Setter<TMDBTvGetDetails | undefined> ] = createSignal()
+	const [ tvDetails, setTvDetails ] = createSignal<TMDBTvGetDetails | undefined>()
 
 	onMount(async () => {
 
 		setTvDetails(await tmdb.tmdbGetTvDetails({
-			priority: 13,
+			priority: 7,
 			query: {
 				tv_id: parseInt(params.tvId)
 			}
 		}))
-
-		// console.log(tvDetails())
 	})
 
-	const [ backdrop, setBackdrop ]: [ Accessor<string | undefined>, Setter<string | undefined> ] = createSignal()
+	const [ backdrop, setBackdrop ] = createSignal<string | undefined>()
 	const [ backdropLoading, setBackdropLoading ] = createSignal(true)
 
 	createEffect(async () => {
