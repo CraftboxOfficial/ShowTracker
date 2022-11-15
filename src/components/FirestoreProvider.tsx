@@ -2,7 +2,7 @@ import { getAuth } from 'firebase/auth'
 import { addDoc, collection, CollectionReference, deleteDoc, doc, DocumentData, DocumentReference, DocumentSnapshot, enableIndexedDbPersistence, FieldPath, getDoc, getDocs, getFirestore, increment, query, Query, QueryDocumentSnapshot, QuerySnapshot, setDoc, Timestamp, updateDoc, where, WhereFilterOp, WithFieldValue } from 'firebase/firestore'
 import { useFirebaseApp, useAuth } from 'solid-firebase';
 import { Component, createContext, useContext, JSXElement, Show, createSignal, createEffect } from 'solid-js'
-import { TrackedShow, DBUser, SetTrackedShow, TrackList, SetTrackList, DBSetShow, DBShow } from 'src/db';
+import { TrackedShow, DBUser, SetTrackedShow, TrackList, SetTrackList, DBSetShow, DBShow, SetSeasonTrackList, SeasonTrackList, EpisodeTrackList, SetEpisodeTrackList } from 'src/db';
 
 const FirestoreContext = createContext()
 
@@ -17,6 +17,9 @@ interface FirestoreContext {
 		getCol: () => CollectionReference<TrackList>
 		getQuerySnap: () => Promise<QuerySnapshot<TrackList>>
 		getQuery: (whereSel?: { fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown }) => Query<TrackList>
+		/**
+		 * Returns methods for manipulating single track list
+		 */
 		single: (trackListId?: string) => {
 			getRef: () => DocumentReference<TrackList>
 			updateDoc: (data: WithFieldValue<SetTrackList>) => void
@@ -29,11 +32,43 @@ interface FirestoreContext {
 		getCol: () => CollectionReference<DBShow>
 		getQuerySnap: () => Promise<QuerySnapshot<DBShow>>
 		getQuery: (whereSel?: { fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown }) => Query<DBShow>
+		/**
+		 * Returns methods for manipulating single show in a track list
+		 */
 		single: (showId?: string, tmdbId?: number) => {
 			getRef: () => DocumentReference<DBShow>
 			updateDoc: (data: WithFieldValue<DBSetShow>) => void
+			/**
+			 * requires showId and tmdbId
+			 */
 			deleteDoc: () => void
 			getSnap: () => Promise<DocumentSnapshot<DBShow>>
+		}
+	},
+
+	seasons: (trackListId: string, showId: string) => {
+		getCol: () => CollectionReference<SeasonTrackList>
+		getQuerySnap: () => Promise<QuerySnapshot<SeasonTrackList>>
+		getQuery: (whereSel?: { fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown }) => Query<SeasonTrackList>
+
+		single: (seasonNumber: number) => {
+			getRef: () => DocumentReference<SeasonTrackList>
+			updateDoc: (data: WithFieldValue<SetSeasonTrackList>) => void
+			deleteDoc: () => void
+			getSnap: () => Promise<DocumentSnapshot<SeasonTrackList>>
+		}
+	},
+
+	episodes: (trackListId: string, showId: string, seasonNumber: number) => {
+		getCol: () => CollectionReference<EpisodeTrackList>
+		getQuerySnap: () => Promise<QuerySnapshot<EpisodeTrackList>>
+		getQuery: (whereSel?: { fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown }) => Query<EpisodeTrackList>
+
+		single: (episodeNumber: number) => {
+			getRef: () => DocumentReference<EpisodeTrackList>
+			updateDoc: (data: WithFieldValue<SetEpisodeTrackList>) => void
+			deleteDoc: () => void
+			getSnap: () => Promise<DocumentSnapshot<EpisodeTrackList>>
 		}
 	}
 }
@@ -282,6 +317,127 @@ export const FirestoreProvider: Component<{ children: JSXElement }> = (props) =>
 				},
 			}
 		},
+
+		seasons(trackListId, showId) {
+			return {
+				getCol() {
+					const seasonTrackListCol = createCollection<SeasonTrackList>("users", authState.data.uid, "trackLists", trackListId, "shows", showId, "seasons")
+					return seasonTrackListCol
+				},
+
+				getQuerySnap() {
+					return getDocs(this.getCol())
+				},
+
+				getQuery(whereSel) {
+					if (whereSel) {
+						return query(this.getCol(), where(whereSel.fieldPath, whereSel.opStr, whereSel.value))
+					}
+
+					return query(this.getCol())
+				},
+
+				single(seasonNumber) {
+					const seasons = firestoreFunctions.seasons(trackListId, showId)
+
+					return {
+						getRef() {
+							return doc(seasons.getCol(), seasonNumber.toString())
+						},
+
+						getSnap() {
+							return getDoc(this.getRef())
+						},
+
+						async updateDoc(data) {
+							if ((await this.getSnap()).exists()) {
+								updateDoc<SetSeasonTrackList>(this.getRef(), {
+									...data,
+									lastUpdatedOn: Timestamp.fromDate(new Date()),
+								})
+
+								return
+							}
+
+							setDoc<SetSeasonTrackList>(this.getRef(), {
+								notes: [],
+								...data,
+								addedOn: Timestamp.fromDate(new Date()),
+								lastUpdatedOn: Timestamp.fromDate(new Date()),
+							})
+						},
+
+						deleteDoc() {
+							deleteDoc(this.getRef())
+						},
+					}
+				},
+			}
+		},
+
+		episodes(trackListId, showId, seasonNumber) {
+			return {
+				getCol() {
+					// console.log(trackListId, showId, seasonNumber)
+					const episodesTrackListCol = createCollection<EpisodeTrackList>("users", authState.data.uid, "trackLists", trackListId, "shows", showId, "seasons", seasonNumber.toString(), "episodes")
+					return episodesTrackListCol
+				},
+
+				getQuerySnap() {
+					return getDocs(this.getCol())
+				},
+
+				getQuery(whereSel) {
+					if (whereSel) {
+						return query(this.getCol(), where(whereSel.fieldPath, whereSel.opStr, whereSel.value))
+					}
+
+					return query(this.getCol())
+				},
+
+				single(episodeNumber) {
+					const episodes = firestoreFunctions.episodes(trackListId, showId, seasonNumber)
+
+					return {
+						getRef() {
+							return doc(episodes.getCol(), episodeNumber.toString())
+						},
+
+						getSnap() {
+							return getDoc(this.getRef())
+						},
+
+						async updateDoc(data) {
+							if ((await this.getSnap()).exists()) {
+								updateDoc<SetEpisodeTrackList>(this.getRef(), {
+									...data,
+									lastUpdatedOn: Timestamp.fromDate(new Date()),
+								})
+
+								return
+							}
+
+							if ((await firestoreFunctions.seasons(trackListId, showId).getQuerySnap()).empty) {
+								firestoreFunctions.seasons(trackListId, showId).single(seasonNumber).updateDoc({})
+							}
+
+							setDoc<SetEpisodeTrackList>(this.getRef(), {
+								status: "notWatched",
+								notes: [],
+								...data,
+								// addedOn: Timestamp.fromDate(new Date()),
+								lastUpdatedOn: Timestamp.fromDate(new Date()),
+							})
+						},
+
+						deleteDoc() {
+							deleteDoc(this.getRef())
+						},
+					}
+				},
+			}
+		},
+
 	}
 
 
